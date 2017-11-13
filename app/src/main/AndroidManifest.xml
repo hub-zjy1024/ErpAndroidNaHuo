@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.b1b.js.erpandroid_nahuo">
+
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.FLASHLIGHT"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
+    <application
+        android:name=".application.MyApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/appicon"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        <activity android:name=".activity.Nh_MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".activity.MenuActivity"/>
+
+        <service
+            android:name=".services.NahuoPushService"
+            android:enabled="true"/>
+
+        <activity android:name=".activity.NahuoListAcitivity"/>
+        <activity android:name=".activity.DialogAcitity"/>
+        <activity android:name=".activity.SettingActivity"/>
+
+        <service android:name=".services.LogUploadService"/>
+        <activity android:name="zhy.imageloader.PickPicActivity"/>
+        <service android:name=".services.LogUploadService"/>
+
+        <activity android:name=".activity.TakePicActivity"/>
+        <activity android:name=".activity.CaigouTakePic2Activity"/>
+        <activity android:name=".activity.ViewPicByPidActivity"/>
+        <activity android:name=".activity.PicDetailActivity"/>
+        <activity android:name=".activity.ObtainPicFromPhone"/>
+        <activity android:name=".activity.CaigouYanhuoActivity"/>
+        <activity android:name=".activity.YanhuoCheckActivity"/>
+        <activity android:name="zxing.activity.CaptureActivity"/>
+
+    </application>
+</manifest>

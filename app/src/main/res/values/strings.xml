@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">大赢家验货</string>
+
+    <array name="storage_name">
+        <item>测试</item>
+        <item>云岗库房</item>
+        <item>深圳赛格</item>
+        <item>香港库房</item>
+        <item>北京中转库</item>
+    </array>
+    <array name="storage_id">
+        <item>1</item>
+        <item>100</item>
+        <item>102</item>
+        <item>110</item>
+        <item>123</item>
+    </array>
+    <array name="jiezhang_type">
+        <item>现金</item>
+        <item>支票</item>
+        <item>现金电汇</item>
+        <item>账号电汇</item>
+        <item>美金</item>
+    </array>
+    <string name="title_ddyanhuo">等待验货</string>
+
+</resources>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="title_background">#8385f7</color>
+    <color name="color_white">#ffffff</color>
+    <color name="color_black">#000000</color>
+    <color name="color_shadow">#a7a7a7</color>
+    <color name="main_ed_primaryColor">#060dfa</color>
+    <color name="main_ed_baseColor">#7c12ec</color>
+    <color name="main_ed_floatingColor">#801515</color>
+    <color name="cardview_bg">#b0b2ea</color>
+    <color name="kucunfb_isfabu">#a60609</color>
+    <color name="lv_bg">#acacac</color>
+    <color name="lite_blue">#ff359ff2</color>
+    <color name="bijia_title_background">#8385f7</color>
+    <color name="alertcolor_bg_whight">#000fff</color>
+    <color name="button_light_bg">#1EB9F2</color>
+    <color name="btn_sel_press">#2F98CE</color>
+    <color name="btn_sel_unpress">#8bc5ca</color>
+    <color name="btn_color_highlight">#9bbbd4</color>
+    <color name="btn_color_nomarl">#ff359ff2</color>
+    <color name="button_light_bg_press">#00668c</color>
+    <color name="button_light_content">#ffffff</color>
+    <color name="listview_item_press">#D9D9D9</color>
+</resources>

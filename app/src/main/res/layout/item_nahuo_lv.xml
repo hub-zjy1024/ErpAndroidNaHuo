@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:padding="8dp">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <CheckBox
+            android:id="@+id/item_nahuo_checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/item_nahuo_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/zjy_text_size_2"
+            android:layout_toRightOf="@id/item_nahuo_checkbox"
+            />
+
+        <Button
+            android:id="@+id/item_nahuo_btn_ok"
+            style="@style/zjy_button_nomarl_alpha100"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/item_nahuo_tv"
+            android:text="拿货完成"
+            />
+        <Button
+            android:id="@+id/item_nahuo_btn_uploadpic"
+            style="@style/zjy_button_nahuo"
+            android:layout_toLeftOf="@id/item_nahuo_btn_ok"
+            android:layout_marginRight="20dp"
+            android:layout_below="@id/item_nahuo_tv"
+            android:textColor="@color/color_white"
+            android:text="拍照上传"
+            />
+    </RelativeLayout>
+
+</LinearLayout>

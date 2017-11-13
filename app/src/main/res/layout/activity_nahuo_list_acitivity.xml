@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.b1b.js.erpandroid_nahuo.activity.NahuoListAcitivity">
+
+    <TextView
+        android:id="@+id/nahuo_menu_titles"
+        style="@style/zjy_title"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="拿货"
+        />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:id="@+id/nahuo_ed_pid"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:hint="单据号"
+            android:inputType="number"
+            app:met_clearButton="true"
+            app:met_primaryColor="@color/colorPrimary"/>
+
+        <Button
+            android:id="@+id/nahuo_btn_search"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="搜索"/>
+
+        <CheckBox
+            android:id="@+id/nahuo_cho_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="已完成"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/nahuo_btn_piliang"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="批量处理"/>
+
+        <Button
+            android:id="@+id/nahuo_btn_confirmAll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="确认选中列表"/>
+
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/nahuo_lv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</LinearLayout>

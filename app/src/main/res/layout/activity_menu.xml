@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.b1b.js.erpandroid_nahuo.activity.MenuActivity">
+
+    <TextView
+        android:id="@+id/nahuo_menu_titles"
+        style="@style/zjy_title"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="菜单"
+        />
+
+    <ListView
+        android:id="@+id/nahuo_menu_lv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:divider="@drawable/divider"
+        android:dividerHeight="1dp"
+        android:layout_below="@id/nahuo_menu_titles"/>
+</RelativeLayout>
