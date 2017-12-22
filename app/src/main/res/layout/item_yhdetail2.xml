@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="@dimen/default_padding_bottom"
+                android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/item_yhdetail_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black_de"
+        android:textSize="@dimen/def_text_size_nomarl"/>
+
+    <TextView
+        android:id="@+id/item_yhdetail_pihao"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/item_yhdetail_tv"
+        android:textColor="@color/black_de"
+        android:textSize="@dimen/def_text_size_nomarl"/>
+
+    <TextView
+        android:id="@+id/item_yhdetail_counts"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/item_yhdetail_tv"
+        android:layout_toRightOf="@id/item_yhdetail_pihao"
+        android:textColor="@color/black_de"
+        android:textSize="@dimen/def_text_size_nomarl"/>
+
+    <TextView
+        android:id="@+id/item_yhdetail_fengzhuang"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/item_yhdetail_pihao"
+        android:textColor="@color/black_de"
+        android:textSize="@dimen/def_text_size_nomarl"/>
+
+    <TextView
+        android:id="@+id/item_yhdetail_factory"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/item_yhdetail_pihao"
+        android:layout_toRightOf="@id/item_yhdetail_fengzhuang"
+        android:textColor="@color/black_de"
+        android:textSize="@dimen/def_text_size_nomarl"/>
+
+    <TextView
+        android:id="@+id/item_yhdetail_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/item_yhdetail_fengzhuang"
+        android:textColor="@color/black_de"
+        android:textSize="@dimen/def_text_size_nomarl"/>
+
+    <TextView
+        android:id="@+id/item_yhdetail_note"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/item_yhdetail_description"
+        android:textColor="@color/black_de"
+        android:textSize="@dimen/def_text_size_nomarl"/>
+</RelativeLayout>

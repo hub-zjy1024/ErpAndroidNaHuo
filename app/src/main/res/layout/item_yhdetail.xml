@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TextView
+        android:padding="@dimen/default_padding_bottom"
+        android:id="@+id/item_yhdetail_tv"
+        android:textColor="@color/black_de"
+        android:textSize="@dimen/def_text_size_nomarl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

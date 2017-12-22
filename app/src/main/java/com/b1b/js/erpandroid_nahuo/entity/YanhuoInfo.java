@@ -1,32 +1,37 @@
 package com.b1b.js.erpandroid_nahuo.entity;
 
+import java.io.Serializable;
+
+import utils.StringFormatUtils;
+
 /**
  * Created by 张建宇 on 2017/8/25.
  */
 
-public class YanhuoInfo {
-//    {
-//        "PID":"830257", "采购地":"深圳市场", "制单日期":"2017/8/25 9:55:15", "公司":"美商利华分公司", "部门":
-//        "北京美商利华国际", "业务员":"谭晓燕", "单据状态":"等待验货", "收款":"现款现货", "客户开票":"普通发票", "供应商开票":
-//        "普通发票", "供应商":"深圳市同亨微科技有限公司", "采购员":"郭峰建", "询价员":"郭峰建"
-//    }
+public class YanhuoInfo implements Serializable {
+    //    {
+    //        "PID":"830257", "采购地":"深圳市场", "制单日期":"2017/8/25 9:55:15", "公司":"美商利华分公司", "部门":
+    //        "北京美商利华国际", "业务员":"谭晓燕", "单据状态":"等待验货", "收款":"现款现货", "客户开票":"普通发票", "供应商开票":
+    //        "普通发票", "供应商":"深圳市同亨微科技有限公司", "采购员":"郭峰建", "询价员":"郭峰建"
+    //    }
 
     @Override
     public String toString() {
         return
-                "单号='" + pid +"'\n"+
-                "采购地='" + caigouAddress+"'\n"+
-                "制单日期='" + pidDate +"'\n"+
-                "公司='" + company+"'\n"+
-                "部门='" + deptName+"'\n"+
-                "业务员='" + saleMan+"'\n"+
-                "单据状态='" + pidState+"'\n"+
-                "收款='" + payType+"'\n"+
-                "客户开票='" + userFapiao+"'\n"+
-                "供应商开票='" + companyFapiao+"'\n"+
-                "供应商='" + providerName+"'\n"+
-                "采购员='" + caigouMan+"'\n"+
-                "询价员='" + askPriceBy +"'\n";
+                toString2()+"\n"+
+                        "收款=" + payType + "\n" +
+                        "客户开票=" + userFapiao + "\n" +
+                        "供应商开票=" + companyFapiao + "\n" +
+                        "供应商=" + providerName + "\n"+
+                        "采购员=" + caigouMan + "   询价员=" + askPriceBy + "";
+    }
+    public String toString2() {
+        return
+                "pid=" + pid + "   " + pidDate + "\n" +
+//                        "型号=" + detail.substring(0, detail.indexOf("=")) + "\n"+
+                        StringFormatUtils.getStringAtLen("采购地=" + caigouAddress) + "   " + StringFormatUtils.getStringAtLen("状态=" + pidState) + "\n" +
+                        StringFormatUtils.getStringAtLen("部门=" + deptName) +"   "+ StringFormatUtils.getStringAtLen("员工:" + saleMan )+ "\n" +
+                        "公司=" + company;
     }
 
     public YanhuoInfo() {
@@ -64,7 +69,7 @@ public class YanhuoInfo {
     private String providerName;
     private String caigouMan;
     private String askPriceBy;
-
+    public String detail = "";
     public String getPid() {
         return pid;
     }

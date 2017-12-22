@@ -21,6 +21,7 @@
         <activity android:name=".activity.Nh_MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
+
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
@@ -35,7 +36,9 @@
         <activity android:name=".activity.SettingActivity"/>
 
         <service android:name=".services.LogUploadService"/>
+
         <activity android:name="zhy.imageloader.PickPicActivity"/>
+
         <service android:name=".services.LogUploadService"/>
 
         <activity android:name=".activity.TakePicActivity"/>
@@ -46,6 +49,8 @@
         <activity android:name=".activity.CaigouYanhuoActivity"/>
         <activity android:name=".activity.YanhuoCheckActivity"/>
         <activity android:name="zxing.activity.CaptureActivity"/>
-
+        <activity android:name=".activity.QualityCheckActivity">
+        </activity>
     </application>
+
 </manifest>

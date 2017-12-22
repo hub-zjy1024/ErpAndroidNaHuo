@@ -21,6 +21,8 @@ import java.util.HashMap;
 public class MenuActivity extends AppCompatActivity {
 
     private final String itemYanhuo = "等待验货";
+    private final String tag_QualityCheck = "质检中心";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,17 +30,15 @@ public class MenuActivity extends AppCompatActivity {
         setContentView(R.layout.activity_menu);
         ListView lv = ((ListView) findViewById(R.id.nahuo_menu_lv));
         ArrayList<HashMap<String, Object>> list = new ArrayList<>();
-//        HashMap<String, Object> map = new HashMap<>();
-//        map.put("title", "拿货");
-//        map.put("img", R.drawable.menu_icon_nahuo);
-//        map.put("description", "等待处理的拿货列表");
-//
-//        list.add(map);
         HashMap<String, Object> map = new HashMap<>();
         map.put("title", itemYanhuo);
         map.put("img", R.drawable.menu_icon_nahuo);
         map.put("description", "等待处理的拿货列表");
-
+        list.add(map);
+        map = new HashMap<>();
+        map.put("title", tag_QualityCheck);
+        map.put("img", R.drawable.menu_icon_quality_check);
+        map.put("description", "等待质检");
         list.add(map);
         SimpleAdapter adapter = new SimpleAdapter(this, list, R.layout.item_nahuomenu_lv,
                 new String[]{"title", "img", "description"}, new int[]{R.id
@@ -78,6 +78,11 @@ public class MenuActivity extends AppCompatActivity {
                         intent.setClass(MenuActivity.this, CaigouYanhuoActivity.class);
                         startActivity(intent);
                         MyApp.myLogger.writeInfo("<page> yanhuo");
+                        break;
+                    case tag_QualityCheck:
+                        intent.setClass(MenuActivity.this, QualityCheckActivity.class);
+                        startActivity(intent);
+                        MyApp.myLogger.writeInfo("<page> QualityCheck");
                         break;
                 }
             }

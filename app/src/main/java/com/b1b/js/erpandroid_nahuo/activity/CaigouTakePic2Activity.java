@@ -552,7 +552,7 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                                     } else {
                                         remotePath = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
                                     }
-                                    FTPUtils ftpUtil = new FTPUtils(FtpManager.mainAddress, 21, FtpManager
+                                    FTPUtils ftpUtil = new FTPUtils(FtpManager.mainAddress, FTPUtils.DEFAULT_PORT, FtpManager
                                             .mainName,
                                             FtpManager.mainPwd);
                                     //                                        url= "192.168.10.65";

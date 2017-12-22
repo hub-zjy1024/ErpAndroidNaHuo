@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/activity_caigouyanhuo_item_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/color_black"
+        android:textSize="18sp"/>
+
+    <TableRow>
+
+        <TextView
+            android:id="@+id/activity_caigouyanhuo_item_caigou"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/color_black"
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/activity_caigouyanhuo_item_state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/color_black"
+            android:textSize="18sp"/>
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:id="@+id/activity_caigouyanhuo_item_dept"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/color_black"
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/activity_caigouyanhuo_item_uid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/color_black"
+            android:textSize="18sp"/>
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:id="@+id/activity_caigouyanhuo_item_company"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/color_black"
+            android:textSize="18sp"/>
+    </TableRow>
+
+    <TextView
+        android:id="@+id/activity_caigouyanhuo_item_partnos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/title_background"
+        android:textSize="@dimen/def_text_size_smalll"/>
+
+    <RelativeLayout android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/activity_caigouyanhuo_item_alert"
+            android:layout_alignParentLeft="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/btn_color_nomarl"
+            android:textSize="@dimen/def_text_size_smalll"/>
+        <!--<Button-->
+            <!--android:layout_alignParentRight="true"-->
+            <!--android:id="@+id/activity_caigouyanhuo_item_qualitycheck"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:text="质检中心"-->
+            <!--android:layout_height="wrap_content"/>-->
+    </RelativeLayout>
+
+
+</TableLayout>

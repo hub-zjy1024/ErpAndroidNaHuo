@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.b1b.js.erpandroid_nahuo.activity.QualityCheckActivity">
+
+    <TextView
+        android:id="@+id/nahuo_menu_titles"
+        style="@style/zjy_title"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="质检中心"/>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="@dimen/def_padding">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:id="@+id/activity_quality_ed_pid"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:hint="输入单据号"/>
+
+                <Button
+                    android:id="@+id/activity_quality_btn_search"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="搜索"/>
+
+                <Button
+                    android:id="@+id/activity_quality_btn_scan"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:text="扫码"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <CheckBox
+                        android:id="@+id/activity_quality_cbo_autocommit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="自动提交"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="注：扫码完成自动开始送入质检"
+                        android:textColor="@color/alertcolor_bg_whight"
+                        android:textSize="@dimen/zjy_text_size_1"/>
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="质检意见："
+                    android:textSize="@dimen/zjy_text_size_1"/>
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="160dp">
+
+                    <TextView
+                        android:id="@+id/activity_quality_tv_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/color_black"
+                        android:text="暂无"
+                        android:textSize="@dimen/zjy_text_size_2"/>
+                </ScrollView>
+
+                <EditText
+                    android:id="@+id/activity_quality_ed_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="质检信息(默认为‘同意’)"
+                    android:lines="2"/>
+
+                <Button
+                    android:id="@+id/activity_quality_btnCommit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="手动提交"/>
+                <TextView
+                    android:id="@+id/activity_quality_tvdetail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="明细"/>
+            </LinearLayout>
+        </LinearLayout>
+
+</LinearLayout>

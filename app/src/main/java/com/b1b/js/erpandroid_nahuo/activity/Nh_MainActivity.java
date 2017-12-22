@@ -499,9 +499,9 @@ public class Nh_MainActivity extends AppCompatActivity {
                         }
                     }
                 });
-                //                Message msg = mHandler.obtainMessage(8);
+                //                Message msg = scanHandler.obtainMessage(8);
                 //                msg.arg1 = percent;
-                //                mHandler.sendMessage(msg);
+                //                scanHandler.sendMessage(msg);
                 //写入时第三个参数使用len
                 fos.write(buf, 0, len);
             }

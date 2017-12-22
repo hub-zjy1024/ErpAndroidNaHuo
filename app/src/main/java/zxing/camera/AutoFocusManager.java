@@ -20,7 +20,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.hardware.Camera;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ public class AutoFocusManager implements Camera.AutoFocusCallback {
 
 	private static final String TAG = AutoFocusManager.class.getSimpleName();
 
-	private static final long AUTO_FOCUS_INTERVAL_MS = 2000L;
+	private static final long AUTO_FOCUS_INTERVAL_MS = 700L;
 	private static final Collection<String> FOCUS_MODES_CALLING_AF;
 
 	static {
@@ -65,11 +64,7 @@ public class AutoFocusManager implements Camera.AutoFocusCallback {
 		if (!stopped && outstandingTask == null) {
 			AutoFocusTask newTask = new AutoFocusTask();
 			try {
-				if (Build.VERSION.SDK_INT >= 11) {
-					newTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-				} else {
-					newTask.execute();
-				}
+				newTask.execute();
 				outstandingTask = newTask;
 			} catch (RejectedExecutionException ree) {
 				Log.w(TAG, "Could not request auto focus", ree);

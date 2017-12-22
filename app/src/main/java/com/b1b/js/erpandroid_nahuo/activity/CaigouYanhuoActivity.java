@@ -1,5 +1,6 @@
 package com.b1b.js.erpandroid_nahuo.activity;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import utils.DialogUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.WebserviceUtils;
@@ -45,7 +47,7 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
     private ProgressDialog pd;
     private Context mContext = this;
     private EditText edpartno;
-
+    private AlertDialog infoDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,27 +55,40 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_caigou_yanhuo);
         edpid = (EditText) findViewById(R.id.activity_caigou_yanhuo_edpid);
         edpid.requestFocus();
-         edpartno = (EditText) findViewById(R.id
+        edpartno = (EditText) findViewById(R.id
                 .activity_caigou_yanhuo_edpartno);
         lv = (ListView) findViewById(R.id.activity_caigou_yanhuo_lv);
         yanhuoInfos = new ArrayList<>();
         pd = new ProgressDialog(this);
         pd.setTitle("提示");
         pd.setMessage("正在搜索");
-        mAdapter = new YanhuoAdapter(yanhuoInfos, mContext, R.layout
-                .activity_caigouyanhuo_item);
+        infoDialog = DialogUtils.createAlertDialog(this, "这是");
+//        mAdapter = new YanhuoAdapter(yanhuoInfos, mContext, R.layout.activity_caigouyanhuo_item);
+        mAdapter = new YanhuoAdapter(yanhuoInfos, mContext, R.layout.activity_caigouyanhuo_item_table);
         lv.setAdapter(mAdapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(mContext,
-                        YanhuoCheckActivity.class);
+                Intent intent = new Intent(mContext, YanhuoCheckActivity.class);
                 if (yanhuoInfos.size() > position) {
                     YanhuoInfo info = yanhuoInfos.get(position);
                     intent.putExtra("pid", info.getPid());
                     intent.putExtra("flag", "caigou");
+                    intent.putExtra("detail", info.detail);
                     startActivity(intent);
                 }
+            }
+        });
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                YanhuoInfo item = (YanhuoInfo) parent.getItemAtPosition(position);
+                infoDialog.setTitle("详情："+item.getPid());
+                infoDialog.setMessage(item.toString());
+                DialogUtils.safeShowDialog(CaigouYanhuoActivity.this, infoDialog);
+//                TextView tv = (TextView) view.findViewById(R.id.activity_caigouyanhuo_item_tv);
+//                tv.setText(item.toString());
+                return true;
             }
         });
         Button btnSearch = (Button) findViewById(R.id.activity_caigou_yanhuo_btn_search);
@@ -136,6 +151,26 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
                                 company, deptName, saleMan, pidState, payType,
                                 userFapiao, providerFapiao, providerName, caigouMan,
                                 askPriceBy);
+                        if (jArray.length() == 1) {
+                            String detailInfo = YanhuoCheckActivity.getDetailInfo("", pid);
+                            try {
+                                JSONObject dObje = new JSONObject(detailInfo);
+                                String buider = new String();
+                                JSONArray dArray = dObje.getJSONArray("表");
+                                for (int j = 0; j < dArray.length(); j++) {
+                                    JSONObject tDobj = dArray.getJSONObject(i);
+                                    buider += tDobj.getString("型号") + ",";
+                                }
+                                int h = buider.lastIndexOf(",");
+                                if (h != -1) {
+                                    buider = buider.substring(0, h);
+                                    detailInfo = buider + "$" + detailInfo;
+                                    yhInfo.detail = detailInfo;
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
                         yanhuoInfos.add(yhInfo);
                     }
                     mHandler.post(new Runnable() {
@@ -196,12 +231,13 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
         }
         String pid = edpid.getText().toString();
         String partno = edpartno.getText().toString();
-        SoftKeyboardUtils.closeInputMethod(edpid,this);
+        if (!pid.equals("")) {
+            getDate(pid, partno);
+        }
 
-        getDate(pid, partno);
     }
 
-    public String getResponse(String partno, String pid) throws IOException,
+    public static String getResponse(String partno, String pid) throws IOException,
             XmlPullParserException {
         //        GetSSCGInfoByDDYH
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();

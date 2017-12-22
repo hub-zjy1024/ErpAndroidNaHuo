@@ -183,7 +183,7 @@ public class ImageLoader {
                     holder.path = path;
                     Message message = Message.obtain();
                     message.obj = holder;
-                    // Log.e("TAG", "mHandler.sendMessage(message);");
+                    // Log.e("TAG", "scanHandler.sendMessage(message);");
                     mHandler.sendMessage(message);
                     mPoolSemaphore.release();
                 }
