@@ -65,7 +65,7 @@ public class NahuoPushService extends Service {
                 for (int i = 0; true; i++) {
                     Date date = new Date();
                     int hours = date.getHours();
-                    Log.e("zjy", "NahuoPushService->run(): HourS==" + hours);
+                    Log.e("zjy", "NahuoPushService->run(): nowHour==" + hours);
                     if ((hours >= 10 && hours <= 11) || (hours >= 14 && hours <= 15)) {
                         try {
                             String nahuoList = NahuoListAcitivity.getNahuoList(MyApp.id, "", "1");

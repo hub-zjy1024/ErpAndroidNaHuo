@@ -52,7 +52,12 @@ public class UploadUtils {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return sdf.format(new Date());
     }
-
+    public static String getDD(Date date) {
+        SimpleDateFormat.getTimeInstance(1);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd");
+        String str = sdf.format(date);
+        return str;
+    }
     /**
      @param ftpUrl
      @param path

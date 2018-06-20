@@ -25,8 +25,7 @@ public class MyApp extends Application implements Thread.UncaughtExceptionHandle
     public void onCreate() {
         super.onCreate();
         final String logFileName = "dyj_nahuo_log.txt";
-        myLogger = new LogRecoder(logFileName, null);
-        myLogger.init();
+        myLogger = new LogRecoder(logFileName);
         Thread.setDefaultUncaughtExceptionHandler(this);
     }
 

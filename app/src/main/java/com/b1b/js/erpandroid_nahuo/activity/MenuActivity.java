@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 import com.b1b.js.erpandroid_nahuo.R;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
-import com.b1b.js.erpandroid_nahuo.services.LogUploadService;
+import com.b1b.js.erpandroid_nahuo.services.LogUploadService2;
 import com.b1b.js.erpandroid_nahuo.services.NahuoPushService;
 
 import java.util.ArrayList;
@@ -92,8 +92,8 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        startService(new Intent(this, LogUploadService.class));
+    protected void onResume() {
+        super.onResume();
+        startService(new Intent(this, LogUploadService2.class));
     }
 }

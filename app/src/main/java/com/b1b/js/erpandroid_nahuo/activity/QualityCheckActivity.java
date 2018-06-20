@@ -134,6 +134,7 @@ public class QualityCheckActivity extends ScanBaseActivity {
         try {
             int tempPid = Integer.parseInt(result);
         } catch (NumberFormatException e) {
+            e.printStackTrace();
             MyToast.showToast(QualityCheckActivity.this, "扫码结果有误，必须为数字");
             return;
         }

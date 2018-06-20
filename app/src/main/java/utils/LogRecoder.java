@@ -8,7 +8,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -20,35 +19,31 @@ public class LogRecoder {
     private String logName;
     private String filepath;
     private OutputStreamWriter writer;
-    private boolean canWrite = false;
-
 
     public LogRecoder(String logName, String filepath) {
         this.logName = logName;
         this.filepath = filepath;
+        init(true);
     }
 
-    public void init() {
-        try {
-            File rootFile = Environment.getExternalStorageDirectory();
-            if (rootFile.length() > 0) {
-                FileOutputStream stream;
-                if (filepath == null) {
-                    stream = new FileOutputStream(rootFile.getAbsolutePath() + "/" +
-                            logName, true);
-                } else {
-                    stream = new FileOutputStream(rootFile.getAbsolutePath() + "/" +
-                            filepath + "/" + logName, true);
-                }
-                try {
-                    writer = new OutputStreamWriter(stream, "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                canWrite = true;
+    public LogRecoder(String filepath) {
+        this.filepath = filepath;
+        init(true);
+    }
+
+    public synchronized void init(boolean overWrite) {
+        File rootFile = Environment.getExternalStorageDirectory();
+        if (rootFile.length() > 0) {
+            File file = new File(rootFile, "/" + filepath);
+            if (!file.exists()) {
+                file.getParentFile().mkdirs();
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            try {
+                FileOutputStream stream = new FileOutputStream(file, overWrite);
+                writer = new OutputStreamWriter(stream, "UTF-8");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -61,26 +56,24 @@ public class LogRecoder {
 
 
     public synchronized boolean writeString(int type, String logs) {
-        if (!canWrite) {
+        if (writer == null) {
             Log.e("zjy", "LogRecoder->writeString(): can not write to log==");
             return false;
         }
         try {
-            //            OutputStreamWriter writer = new OutputStreamWriter(bufops);
-
-            String tag = "";
+            String tag = "[default]";
             switch (type) {
                 case Type.TYPE_BUG:
-                    tag = "bug";
+                    tag = "[bug]";
                     break;
                 case Type.TYPE_ERROR:
-                    tag = "error";
+                    tag = "[error]";
                     break;
                 case Type.TYPE_EXCEPTION:
-                    tag = "exception";
+                    tag = "[exception]";
                     break;
                 case Type.TYPE_INFO:
-                    tag = "info";
+                    tag = "[info]";
                     break;
             }
             writer.write(getFormatDateString(new Date()) + ":" + tag + ":" + logs + "\n");
@@ -108,7 +101,7 @@ public class LogRecoder {
 
     public synchronized void close() {
         try {
-            if (canWrite) {
+            if (writer != null) {
                 writer.close();
             }
         } catch (IOException e) {
