@@ -3,11 +3,7 @@ package utils;
 import android.os.Environment;
 import android.util.Log;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -91,6 +87,10 @@ public class LogRecoder {
         return writeString(Type.TYPE_ERROR, logs);
     }
 
+    public synchronized boolean writeError(Class cla, String msg) {
+        return writeString(Type.TYPE_INFO, cla.getCanonicalName() + ":" + msg);
+    }
+
     public synchronized boolean writeBug(String logs) {
         return writeString(Type.TYPE_BUG, logs);
     }
@@ -124,4 +124,31 @@ public class LogRecoder {
         }
     }
 
+    public synchronized boolean writeError(Throwable e) {
+        String logs = getStacktrace(e);
+        return writeError("Error Exception:" + logs);
+    }
+
+    private static String getStacktrace(Throwable e) {
+        String result = "null Exception";
+        if (e != null) {
+            StringWriter sw = new StringWriter();
+            PrintWriter writer = new PrintWriter(sw);
+            e.printStackTrace(writer);
+            writer.flush();
+            result = sw.toString();
+            return result;
+        }
+        return result;
+    }
+
+    public synchronized boolean writeError(Throwable e, String msg) {
+        String logs = getStacktrace(e);
+        return writeError("Error Exception:description=" + msg + " \ndetail:" + logs);
+    }
+
+
+    public synchronized boolean writeInfo(Class cla, String logs) {
+        return writeString(Type.TYPE_INFO, cla.getCanonicalName() + ":" + logs);
+    }
 }

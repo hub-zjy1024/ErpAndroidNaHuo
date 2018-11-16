@@ -2,7 +2,7 @@ package com.b1b.js.erpandroid_nahuo.entity;
 
 import java.io.Serializable;
 
-import utils.StringFormatUtils;
+import utils.printer.StringFormatUtils;
 
 /**
  * Created by 张建宇 on 2017/8/25.

@@ -1,4 +1,4 @@
-package utils;
+package utils.printer;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;

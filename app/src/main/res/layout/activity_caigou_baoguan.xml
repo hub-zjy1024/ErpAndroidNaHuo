@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_baoguan_coolayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?android:attr/actionBarSize"
+            app:layout_collapseMode="pin"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+
+        </android.support.v7.widget.Toolbar>
+        <!--<android.support.design.widget.CollapsingToolbarLayout-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--app:expandedTitleMarginEnd="64dp"-->
+        <!--app:expandedTitleMarginStart="48dp"-->
+        <!--app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">-->
+
+        <!--<ImageView-->
+        <!--android:id="@+id/main.backdrop"-->
+        <!--android:layout_width="200dp"-->
+        <!--android:layout_height="200dp"-->
+        <!--android:scaleType="centerCrop"-->
+        <!--android:src="@drawable/ic_launcher"-->
+        <!--app:layout_collapseMode="parallax"/>-->
+
+        <!--<android.support.v7.widget.Toolbar-->
+        <!--android:id="@+id/toolbar"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="?android:attr/actionBarSize"-->
+        <!--app:layout_collapseMode="pin">-->
+
+        <!--<TextView-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="我是toolbar"/>-->
+
+        <!--<Button-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:background="@android:color/transparent"-->
+        <!--android:text="返回"/>-->
+        <!--</android.support.v7.widget.Toolbar>-->
+
+        <!--</android.support.design.widget.CollapsingToolbarLayout>-->
+    </android.support.design.widget.AppBarLayout>
+
+    <ScrollView
+        android:id="@+id/activity_baoguan_myscollview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <!--   <TextView
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                   android:text="@string/my_txt"
+                   android:textSize="20sp"/>-->
+
+            <!--  <android.support.design.widget.FloatingActionButton
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:src="@drawable/floatingb1"
+                  app:backgroundTint="@color/button_light_bg"
+                  app:borderWidth="0dp"
+                  app:elevation="3dp"
+                  app:fabSize="normal"
+                  app:layout_anchor="@id/activity_baoguan_coolayout"
+                  app:layout_anchorGravity="bottom|right"
+                  app:pressedTranslationZ="10dp"
+                  app:rippleColor="@color/color_shadow"/>
+  -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="序号"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="|">
+                </TextView>
+
+                <TextView
+                    android:layout_width="@dimen/titlewith_partno"
+                    android:layout_height="wrap_content"
+                    android:text="型号">
+                </TextView>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="|">
+                </TextView>
+
+                <TextView
+                    android:layout_width="@dimen/titlewith_counts"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                    android:text="数量">
+                </TextView>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="|">
+                </TextView>
+
+                <TextView
+                    android:layout_width="@dimen/titlewith_price"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                    android:text="进价">
+                </TextView>
+            </LinearLayout>
+
+            <com.b1b.js.erpandroid_nahuo.myview.MaxHeightListView
+                android:id="@+id/activity_baoguan_lv"
+                android:layout_width="match_parent"
+                app:maxHeight="250dp"
+                android:layout_height="wrap_content"/>
+            <com.b1b.js.erpandroid_nahuo.myview.CustAutoComTextView
+                android:id="@+id/activity_baoguan_auto_ctv_baoguancomp"
+                style="@style/material_autocomplete_baoguan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:completionThreshold="1"
+                android:visibility="gone"
+                android:hint="报关公司"
+                android:maxLines="1"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="报关公司："/>
+                <Spinner
+                    android:id="@+id/activity_baoguan_spin_baoguancomp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/activity_baoguan_tv_bgcomp_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:visibility="gone"/>
+
+            <com.b1b.js.erpandroid_nahuo.myview.CustAutoComTextView
+                android:id="@+id/activity_baoguan_auto_ctv_ordercomp"
+                style="@style/material_autocomplete_baoguan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="下单公司"
+                android:maxLines="1"/>
+
+            <com.b1b.js.erpandroid_nahuo.myview.CustAutoComTextView
+                android:id="@+id/activity_baoguan_auto_ctv_paycomp"
+                style="@style/material_autocomplete_baoguan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="付款公司"
+
+                android:maxLines="1"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="原供应商:"
+                        android:textSize="@dimen/zjy_text_size_1"
+                        />
+
+                    <TextView
+                        android:id="@+id/activity_baoguan_tv_src_provider"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textColor="@color/colorPrimary"
+                        android:textSize="@dimen/zjy_text_size_1"
+                        />
+
+                </LinearLayout>
+
+                <com.b1b.js.erpandroid_nahuo.myview.CustAutoComTextView
+                    android:id="@+id/activity_baoguan_tv_new_provider"
+                    style="@style/material_autocomplete_baoguan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:completionThreshold="1"
+                    android:hint="新供应商(首字匹配)"
+                    android:maxLines="1"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                >
+
+                <Button
+                    android:id="@+id/activity_baoguan_btn_ok"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="确认"/>
+
+                <Button
+                    android:id="@+id/activity_baoguan_btn_return"
+                    android:layout_width="wrap_content"
+                    android:layout_marginLeft="100dp"
+                    android:layout_height="wrap_content"
+                    android:text="返回"/>
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+
+    </ScrollView>
+
+</android.support.design.widget.CoordinatorLayout>

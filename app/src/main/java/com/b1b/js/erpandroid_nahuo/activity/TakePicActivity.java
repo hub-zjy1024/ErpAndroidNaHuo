@@ -16,8 +16,10 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
+import android.support.design.widget.Snackbar;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
 import android.view.Surface;
@@ -28,90 +30,105 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.b1b.js.erpandroid_nahuo.R;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
+import com.b1b.js.erpandroid_nahuo.handler.NoLeakHandler;
+import com.b1b.js.erpandroid_nahuo.utils.ReuseFtpRunnable;
+import com.b1b.js.erpandroid_nahuo.utils.TaskManager;
 
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
-import utils.DialogUtils;
-import utils.FTPUtils;
-import utils.FtpManager;
-import utils.ImageWaterUtils;
-import utils.MyImageUtls;
+import utils.CheckUtils;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
+import utils.image.ImageWaterUtils;
+import utils.image.MyImageUtls;
 import utils.MyToast;
-import utils.UploadUtils;
-import utils.WebserviceUtils;
+import utils.net.ftp.UploadUtils;
+import utils.wsdelegate.WebserviceUtils;
 import utils.camera.AutoFoucusMgr;
+import utils.wsdelegate.ChuKuServer;
 
-public class TakePicActivity extends AppCompatActivity implements View.OnClickListener {
+public class TakePicActivity extends SavedLoginInfoActivity implements View.OnClickListener, NoLeakHandler.NoLeakCallback {
 
     private int rotation = 0;
     private SurfaceView surfaceView;
     private Button btn_tryagain;
     private Button btn_setting;
-    private Button btn_commit;
-    private Button btn_takepic;
+    protected Button btn_commit;
+    protected Button btn_takepic;
     private SurfaceHolder mHolder;
-    private LinearLayout toolbar;
+    protected LinearLayout toolbar;
     private Camera.Parameters parameters;
-    private Camera camera;
-    private boolean isPreview = false;
-    private Bitmap photo;
+    protected Camera mCamera;
+    protected boolean isPreview = false;
     private List<Camera.Size> picSizes;
     AutoFoucusMgr auto;
-    private ProgressDialog pd;
-    private String pid;
-    private int commitTimes = 0;
+    protected ProgressDialog pd;
+    protected String pid;
+    protected String  mUrl;
+    protected String kfFTP = MyApp.ftpUrl;
     private MaterialDialog resultDialog;
-    private final static int FTP_CONNECT_FAIL = 3;
-    private final static int PICUPLOAD_SUCCESS = 0;
-    private final static int PICUPLOAD_ERROR = 1;
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case PICUPLOAD_ERROR:
-                    showFinalDialog("上传图片失败，请检查网络并重新拍摄");
-                    btn_takepic.setEnabled(true);
-                    toolbar.setVisibility(View.GONE);
-                    break;
-                case PICUPLOAD_SUCCESS:
-                    if (msg.obj.toString().equals("操作成功")) {
-                        showFinalDialog("上传成功");
-                    } else {
-                        showFinalDialog("插入图片信息失败，请重新上传");
-                    }
-                    btn_takepic.setEnabled(true);
-                    toolbar.setVisibility(View.GONE);
-                    break;
-                case FTP_CONNECT_FAIL:
-                    MyToast.showToast(TakePicActivity.this, "连接ftp服务器失败，请检查网络");
-                    break;
-                case 4:
-                    MyToast.showToast(TakePicActivity.this, "FTP地址为空，请重启程序");
-                    break;
-            }
+    protected final static int PICUPLOAD_SUCCESS = 0;
+    protected final static int PICUPLOAD_ERROR = 1;
+    protected Context mContext = TakePicActivity.this;
+    protected int tempRotate = 0;
+    protected Snackbar finalSnackbar;
+    private boolean isDestoryed = false;
+    private Handler picHandler = new NoLeakHandler(this);
+    protected Class mCla = getClass();
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case PICUPLOAD_ERROR:
+                String msgReason = "上传图片失败:请检查网络并重新拍摄";
+                String str = msg.obj != null ? msg.obj.toString() : null;
+                if (str != null) {
+                    msgReason = "上传图片失败:" + str;
+                }
+               showFinalDialog(msgReason + "!!!");
+               btn_takepic.setEnabled(true);
+               toolbar.setVisibility(View.GONE);
+                break;
+            case PICUPLOAD_SUCCESS:
+                String msgOk = "上传成功,是否返回";
+                //                    showFinalDialog(msgOk);
+               finalSnackbar.setText(msgOk);
+               pd.cancel();
+               finalSnackbar.show();
+               picHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        finalSnackbar.dismiss();
+                    }}, 3500);
+               btn_takepic.setEnabled(true);
+               toolbar.setVisibility(View.GONE);
+               break;
         }
-    };
-
+    }
+    protected Bitmap waterBitmap = null;
     private OrientationEventListener mOrientationListener;
-    private SharedPreferences sp;
+    protected SharedPreferences cameraSp;
     private int itemPosition;
     private AlertDialog inputDialog;
-    private String flag;
+    protected String flag;
+    protected byte[] tempBytes;
+    protected SharedPreferences userInfo;
+    private TextView tvPid;
+    protected FTPUtils ftpUtil;
+    protected int did;
+    protected int cid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,19 +141,32 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         btn_takepic = (Button) findViewById(R.id.btn_takepic);
         btn_setting = (Button) findViewById(R.id.takepic_btn_setting);
         toolbar = (LinearLayout) findViewById(R.id.main_toolbar);
+        tvPid = (TextView) findViewById(R.id.activity_take_pic_tvpid);
+        initSnackbar();
+        surfaceView.setZOrderOnTop(false);
         btn_setting.setOnClickListener(this);
         btn_takepic.setOnClickListener(this);
         btn_tryagain.setOnClickListener(this);
         btn_commit.setOnClickListener(this);
-        AlertDialog.Builder builder = new AlertDialog.Builder(TakePicActivity.this);
+        userInfo = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
+        if (kfFTP == null) {
+            kfFTP = userInfo.getString("ftp", "");
+        }
+        cid = userInfo.getInt("cid", -1);
+        did = userInfo.getInt("did", -1);
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         builder.setTitle("请输入单据号");
-        View v = LayoutInflater.from(TakePicActivity.this).inflate(R.layout.dialog_inputpid, null);
+        View v = LayoutInflater.from(mContext).inflate(R.layout.dialog_inputpid, null);
         final EditText dialogPid = (EditText) v.findViewById(R.id.dialog_inputpid_ed);
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 pid = dialogPid.getText().toString();
-                checkPid(TakePicActivity.this, pid, 3);
+                if (check(5)) {
+                    picHandler.obtainMessage(PICUPLOAD_ERROR, "单据号有误");
+                } else {
+                    tvPid.setText(pid);
+                }
             }
         });
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -150,6 +180,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         pid = getIntent().getStringExtra("pid");
         flag = getIntent().getStringExtra("flag");
         if (pid != null) {
+            tvPid.setText(pid);
             dialogPid.setText(pid);
         }
         mOrientationListener = new OrientationEventListener(this,
@@ -160,7 +191,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             }
         };
         //成功或失败的提示框
-        resultDialog = new MaterialDialog(TakePicActivity.this);
+        resultDialog = new MaterialDialog(mContext);
         resultDialog.setTitle("提示");
         resultDialog.setPositiveButton("返回", new View.OnClickListener() {
             @Override
@@ -169,11 +200,24 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 finish();
             }
         });
+        getUrlAndFtp();
         resultDialog.setCanceledOnTouchOutside(true);
         attachToSensor(mOrientationListener);
         //获取surfaceholder
         mHolder = surfaceView.getHolder();
         mHolder.setKeepScreenOn(true);
+        pd = new ProgressDialog(this);
+        pd.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                if (mCamera != null) {
+                    mCamera.startPreview();
+                    auto.start();
+                    isPreview = true;
+                }
+            }
+        });
+        pd.setCancelable(false);
         //添加SurfaceHolder回调
         if (mHolder != null) {
             mHolder.addCallback(new SurfaceHolder.Callback() {
@@ -181,70 +225,68 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 public void surfaceCreated(SurfaceHolder holder) {
                     int counts = Camera.getNumberOfCameras();
                     if (counts == 0) {
-                        MyToast.showToast(TakePicActivity.this, "设备无摄像头");
+                        MyToast.showToast(mContext, "设备无摄像头");
                         return;
                     }
-                    camera = Camera.open(0); // 打开摄像头
-                    if (camera == null) {
-                        MyToast.showToast(TakePicActivity.this, "检测不到摄像头");
+                    mCamera = Camera.open(0); // 打开摄像头
+                    if (mCamera == null) {
+                        MyToast.showToast(mContext, "检测不到摄像头");
                         return;
                     }
+                    cameraSp = getSharedPreferences(SettingActivity.PREF_CAMERA_INFO, 0);
                     //设置旋转角度
-                    camera.setDisplayOrientation(getPreviewDegree(TakePicActivity.this));
+                    mCamera.setDisplayOrientation(getPreviewDegree((TakePicActivity) mContext));
                     //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
-                    parameters = camera.getParameters();
-                    sp = getSharedPreferences("cameraInfo", 0);
+                    parameters = mCamera.getParameters();
                     try {
                         // 设置用于显示拍照影像的SurfaceHolder对象
-                        camera.setPreviewDisplay(holder);
+                        mCamera.setPreviewDisplay(holder);
                         Camera.Size previewSize = parameters.getPreviewSize();
                         int width1 = previewSize.width;
                         int height1 = previewSize.height;
-                        int sw = getWindowManager().getDefaultDisplay().getWidth();
-                        int sh = getWindowManager().getDefaultDisplay().getHeight();
-                        MyApp.myLogger.writeInfo("camera screen:" + sw + "\t" + sh);
-                        MyApp.myLogger.writeInfo("camera def:" + width1 + "\t" + height1);
-                        Log.e("zjy", "TakePicActivity->surfaceCreated(): camera.preview==" + camera.getParameters()
-                                .getPreviewSize().width + "\t" + camera.getParameters().getPreviewSize().height
-                        );
+                        DisplayMetrics metrics = new DisplayMetrics();
+                        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+                        int sw = metrics.widthPixels;
+                        float density = metrics.density;
+                        int sh = metrics.heightPixels;
+                        MyApp.myLogger.writeInfo(mCla, "screenSize w-h:" + sw + "\t" + sh);
+                        MyApp.myLogger.writeInfo(mCla, "defPreviewSize w-h:" + width1 + "\t" + height1);
+                        Log.e("zjy", "TakePicActivity->surfaceCreated(): mCamera.preview==" + width1 + "\t" + height1);
+                        Log.e("zjy", "TakePicActivity->surfaceCreated(): Screen==" + sw + "\t" + sh + "xx" + density);
                         Point finalSize = getSuitablePreviewSize(parameters, sw, sh);
                         if (finalSize != null) {
+                            Log.e("zjy", "TakePicActivity->surfaceCreated():final.preview==" + finalSize.x + "\t" + finalSize.y);
+                            MyApp.myLogger.writeInfo(mCla, "setPreviewSize w-h:" + finalSize.x + "\t" + finalSize.y);
                             parameters.setPreviewSize(finalSize.x, finalSize.y);
                         }
                         //初始化操作在开始预览之前完成
-                        if (sp.getInt("width", -1) != -1) {
-                            int width = sp.getInt("width", -1);
-                            int height = sp.getInt("height", -1);
+                        if (cameraSp.getInt("width", -1) != -1) {
+                            int width = cameraSp.getInt("width", -1);
+                            int height = cameraSp.getInt("height", -1);
+                            MyApp.myLogger.writeInfo(mCla, "setPicSize w-h:" + width + "\t" + height);
                             Log.e("zjy", "TakePicActivity.java->surfaceCreated(): ==readCacheSize width" + width + "\t" + height);
                             parameters.setPictureSize(width, height);
-                            camera.setParameters(parameters);
+                            try {
+                                mCamera.setParameters(parameters);
+                            } catch (RuntimeException e) {
+                                MyApp.myLogger.writeError(e, "in " + mCla.getName());
+                                e.printStackTrace();
+                            }
+                            mCamera.startPreview();
                         } else {
                             showSizeChoiceDialog(parameters);
                         }
-                        camera.startPreview();
                         isPreview = true;
-                        //                        String brand = Build.BRAND;
-                        //                        if (brand != null) {
-                        //                            if (brand.toUpperCase().equals("HONOR")) {
-                        //                                container.setOnClickListener(new View.OnClickListener() {
-                        //                                    @Override
-                        //                                    public void onClick(View v) {
-                        //                                        camera.autoFocus(null);
-                        //                                    }
-                        //                                });
-                        //                            } else {
-                        //                                setAutoFoucs(parameters);
-                        //                            }
-                        //                        }
                         container.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                if (camera != null && isPreview) {
-                                    camera.autoFocus(null);
+                                finalSnackbar.dismiss();
+                                if (mCamera != null && isPreview) {
+                                    mCamera.autoFocus(null);
                                 }
                             }
                         });
-                        auto = new AutoFoucusMgr(camera);
+                        auto = new AutoFoucusMgr(mCamera);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -266,11 +308,37 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+    private void initSnackbar() {
+        finalSnackbar = Snackbar.make(toolbar, "", Snackbar.LENGTH_INDEFINITE);
+        View view = finalSnackbar.getView();
+        Snackbar.SnackbarLayout parent = (Snackbar.SnackbarLayout) view;
+        float sHeight = getResources().getDisplayMetrics().heightPixels;
+        float density = getResources().getDisplayMetrics().density;
+        float fontSize = 6 * density;
+        //        int height = (int) (80 * density);
+        int height = (int) (sHeight * 1/ 8);
+        parent.setMinimumHeight(height);
+        int colorBg = getResources().getColor(R.color.button_light_bg);
+        parent.setBackgroundColor(colorBg);
+        fontSize = 18;
+        TextView tv = (TextView) parent.getChildAt(0);
+        tv.setTextColor(Color.GREEN);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
+        Button btn = (Button) parent.getChildAt(1);
+        btn.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
+        btn.setTextColor(Color.WHITE);
+        finalSnackbar.setActionTextColor(Color.parseColor("#ffffff"));
+        finalSnackbar.setAction("返回", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+    }
 
     /**
      默认使用最大的预览尺寸，以便于获取最清晰的预览画面(测试发现有些不兼容)
      @param parameters
-     @deprecated
      */
     public static Point getSuitablePreviewSize(Camera.Parameters parameters, int screenW, int screenH) {
         Camera.Size defSize = parameters.getPreviewSize();
@@ -278,85 +346,57 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             return null;
         }
         List<Camera.Size> supportedPreviewSizes = parameters.getSupportedPreviewSizes();
-        Collections.sort(supportedPreviewSizes, new Comparator<Camera.Size>() {
-            @Override
-            public int compare(Camera.Size lhs, Camera.Size rhs) {
-                int px1 = lhs.width * lhs.height;
-                int px2 = rhs.width * rhs.height;
-                if (px1 > px2) {
-                    return -1;
-                } else if (px1 == px2) {
-                    return 0;
-                } else {
-                    return 1;
-                }
-            }
-        });
-        int tWidth = 0;
-        int tHeight = 0;
-        for (int i = 0; i < supportedPreviewSizes.size(); i++) {
-            Camera.Size tSize = supportedPreviewSizes.get(i);
-            if (screenH == tSize.width && tSize.height == screenW) {
-                tWidth = tSize.width;
-                tHeight = tSize.height;
-                return new Point(tWidth, tHeight);
-            } else if (screenH > tSize.width) {
-                float rate = tSize.width / (float) tSize.height;
-                float screenRate = screenH / (float) screenW;
-                float res = Math.abs(rate - screenRate);
-                if (res < 0.23) {
-                    tWidth = tSize.width;
-                    tHeight = tSize.height;
-                    break;
-                }
-            }
-        }
-        if (tWidth == 0 && tHeight == 0) {
+        final double aspect = 0.2;
+        double targetRatio = (double) screenH / screenW;
+        if (supportedPreviewSizes == null)
             return null;
-        }
-        return new Point(tWidth, tHeight);
-    }
-
-    /**
-     如果相机支持设置自动聚焦
-     @param parameters
-     */
-    private void setAutoFoucs(Camera.Parameters parameters) {
-        List<String> supportedFocusModes = parameters.getSupportedFocusModes();
-        for (int i = 0; i < supportedFocusModes.size(); i++) {
-            if (supportedFocusModes.get(i).equals(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
-                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-                //如果支持自动聚焦，必须设定回调
-                camera.autoFocus(new Camera.AutoFocusCallback() {
-                    @Override
-                    public void onAutoFocus(boolean success, Camera camera) {
-                        if (success) {
-                            //聚焦成功记得取消，不然不会自动聚焦了
-                            camera.cancelAutoFocus();
-                        }
-                    }
-                });
-                break;
+        Camera.Size optimalSize = null;
+        int minDiff = Integer.MAX_VALUE;
+        int targetHeight = screenW;
+        List<Camera.Size> oList = new ArrayList<>();
+        String s = "";
+        //筛选出比例最合适的size
+        for (Camera.Size size : supportedPreviewSizes) {
+            double ratio = (double) size.width / size.height;
+            double rate = Math.abs(Math.abs(ratio - targetRatio));
+            s += rate + "w-h" + size.width+"\t" + size.height + "\n";
+            if (rate < aspect) {
+                if (size.width == screenH && size.height == targetHeight) {
+                    return new Point(size.width, size.height);
+                }
+                oList.add(size);
             }
         }
+        if (oList.size() == 0) {
+            // 没有满足的比例，直接找到高度最接近的
+            oList = supportedPreviewSizes;
+        }
+        //筛选出高度最相近
+        for (Camera.Size size : oList) {
+            if (Math.abs(size.height - targetHeight) < minDiff) {
+                minDiff = Math.abs(size.height - targetHeight);
+                optimalSize = size;
+            }
+        }
+        return new Point(optimalSize.width, optimalSize.height);
     }
-
     /**
      弹出尺寸选择对话框
      防止照出的图片太大，内存溢出
      */
-    private void showSizeChoiceDialog(final Camera.Parameters parameters) {
-
+    protected void showSizeChoiceDialog(final Camera.Parameters parameters) {
         picSizes = parameters.getSupportedPictureSizes();
         //剔除出尺寸太小的，和尺寸太大的，宽度（1280-2048)
+        String sizesStr = "";
         for (int i = picSizes.size() - 1; i >= 0; i--) {
             int width = picSizes.get(i).width;
-            Log.e("zjy", "TakePicActivity.java->showProgressDialog(): size==" + picSizes.get(i).width + "\t" + picSizes.get(i)
-                    .height);
+            int height = picSizes.get(i).height;
+            sizesStr += "size w-h " + width + "x" + height + "\n";
             if (width < 1920 || width > 2592) {
                 picSizes.remove(i);
             }
         }
+        final String tempSize = sizesStr;
         if (picSizes.size() > 0) {
             String[] strs = new String[picSizes.size()];
             for (int i = 0; i < picSizes.size(); i++) {
@@ -364,7 +404,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 String item = size.width + "X" + size.height;
                 strs[i] = item;
             }
-            AlertDialog.Builder dialog = new AlertDialog.Builder(TakePicActivity.this);
+            AlertDialog.Builder dialog = new AlertDialog.Builder(mContext);
             dialog.setTitle("选择照片大小(尽量选择大的值)");//窗口名
             dialog.setSingleChoiceItems(strs, 0, new DialogInterface.OnClickListener() {
                         @Override
@@ -378,31 +418,40 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
                 public void onClick(DialogInterface dialog, int which) {
                     int width = picSizes.get(itemPosition).width;
                     int height = picSizes.get(itemPosition).height;
-                    Log.e("zjy", "TakePicActivity.java->selectSize: width==" + width + "\t" + height);
                     parameters.setPictureSize(width, height);
-                    camera.setParameters(parameters);
+                    try {
+                        mCamera.setParameters(parameters);
+                    } catch (RuntimeException e) {
+                        MyApp.myLogger.writeError(e, mCla.getName() + " set TempPicsize:" + tempSize);
+                        e.printStackTrace();
+                    }
+                    mCamera.startPreview();
                 }
             });
 
             dialog.setPositiveButton("设为默认尺寸", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    Log.e("zjy", "TakePicActivity.java->onClick(): default size pos==" + itemPosition);
-                    SharedPreferences.Editor editor = sp.edit();
+                    SharedPreferences.Editor editor = cameraSp.edit();
                     int width = picSizes.get(itemPosition).width;
                     int height = picSizes.get(itemPosition).height;
                     editor.putInt("width", width);
                     editor.putInt("height", height);
                     editor.apply();
                     parameters.setPictureSize(width, height);
-                    camera.setParameters(parameters);
+                    try {
+                        mCamera.setParameters(parameters);
+                    } catch (RuntimeException e) {
+                        MyApp.myLogger.writeError(e, mCla.getName() + "setDeFault PictureSize:" + tempSize);
+                        e.printStackTrace();
+                    }
+                    mCamera.startPreview();
                 }
             });
             dialog.setCancelable(false);
             dialog.show();
         } else {
-            MyToast.showToast(TakePicActivity.this, "没有可选的尺寸");
-            return;
+            MyToast.showToast(mContext, "没有可选的尺寸");
         }
     }
 
@@ -415,7 +464,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
             if (mOrientationListener.canDetectOrientation()) {
                 mOrientationListener.enable();
             } else {
-                MyApp.myLogger.writeError("获取相机方向失败,Detect fail");
+                MyApp.myLogger.writeError(TakePicActivity.class, "获取相机方向失败,Detect fail");
                 mOrientationListener.disable();
                 rotation = 0;
             }
@@ -423,31 +472,29 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void releaseCamera() {
-        if (camera != null) {
-            camera.stopPreview();
-            camera.release();
-            camera = null;
+        if (mCamera != null) {
+            mCamera.stopPreview();
+            mCamera.release();
+            mCamera = null;
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        isDestoryed = true;
         releaseCamera();
+        TaskManager.getInstance().execute(new Runnable() {
+            @Override
+            public void run() {
+                if (ftpUtil != null) {
+                    ftpUtil.exitServer();
+                }
+            }
+        });
+        MyImageUtls.releaseBitmap(waterBitmap);
     }
 
-    public static boolean checkPid(Context mContext, String pid) {
-        if ("".equals(pid) || pid == null) {
-            MyToast.showToast(mContext, "请输入单据号");
-            return true;
-        } else {
-            if (pid.length() < 7) {
-                MyToast.showToast(mContext, "请输入7位单据号");
-                return true;
-            }
-        }
-        return false;
-    }
 
     public static boolean checkPid(Context mContext, String pid, int len) {
 
@@ -463,155 +510,55 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         return false;
     }
 
+    public boolean check(int len) {
+        return checkPid(mContext, pid, len);
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             //拍照
             case R.id.btn_takepic:
                 //禁止点击拍照按钮
-                if (checkPid(TakePicActivity.this, pid, 3))
+                if (check(5))
                     return;
                 btn_takepic.setEnabled(false);
-                camera.takePicture(null, null, new Camera.PictureCallback() {
+                mCamera.takePicture(null, null, new Camera.PictureCallback() {
                     @Override
                     public void onPictureTaken(byte[] data, Camera camera) {
-                        isPreview = false;
+                        auto.stop();
                         try {
-                            Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
-                            Matrix matrixs = new Matrix();
-                            matrixs.setRotate(90 + rotation);
-                            photo = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrixs, true);
-                            //显示工具栏
-                            toolbar.setVisibility(View.VISIBLE);
-                        } catch (OutOfMemoryError error) {
-                            MyApp.myLogger.writeError("pic too large");
-                            error.printStackTrace();
-                            MyToast.showToast(TakePicActivity.this, "当前尺寸太大，请选择合适的尺寸");
-                            if (photo != null && !photo.isRecycled()) {
-                                photo.recycle();
-                            }
-                            camera.startPreview();
-                            isPreview = true;
-                            showSizeChoiceDialog(parameters);
-                            toolbar.setVisibility(View.GONE);
-
+                            camera.stopPreview();
+                        } catch (Throwable throwable) {
+                            throwable.printStackTrace();
+                            MyApp.myLogger.writeError(throwable, "in " + mCla);
                         }
+                        tempRotate = rotation;
+                        isPreview = false;
+                        if (data == null || data.length == 0) {
+                            MyToast.showToast(mContext, "拍照出现错误，请重启程序");
+                            tempBytes = null;
+                            MyApp.myLogger.writeError(mCla, "onPictureTaken返回data为空");
+                            return;
+                        }
+                        tempBytes = data;
+                        toolbar.setVisibility(View.VISIBLE);
                     }
                 });
                 break;
             //重新拍摄
             case R.id.main_tryagain:
-                if (photo != null) {
-                    photo.recycle();
-                    photo = null;
-                }
-                camera.startPreview();
+                mCamera.startPreview();
+                auto.start();
+                isPreview = true;
                 btn_takepic.setEnabled(true);
                 toolbar.setVisibility(View.GONE);
                 break;
             //提交
             case R.id.main_commit:
-                commitTimes++;
-                if (photo == null) {
-                    MyToast.showToast(TakePicActivity.this, "请稍等，等图像稳定再上传");
-                    return;
-                }
-                showProgressDialog();
-                //载入水印图
-                final Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.waterpic);
-                if (!photo.isRecycled()) {
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            String remoteName = "";
-                            try {
-                                //加水印后的图片
-                                Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(TakePicActivity.this, photo,
-                                        bitmap, 0, 0);
-                                Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(TakePicActivity.this, waterBitmap, pid,
-                                        (int) (photo.getWidth() * 0.015), Color.RED, 20, 20);
-                                ByteArrayOutputStream bao = new ByteArrayOutputStream();
-                                //图片质量压缩到bao数组
-                                MyImageUtls.compressBitmapAtsize(TextBitmap, bao, 0.4f);
-                                final ByteArrayInputStream in = new ByteArrayInputStream(bao.toByteArray());
-                                String insertPath;
-                                //上传
-                                boolean isConn = false;
-                                FTPUtils ftpUtil;
-                                if (flag != null && flag.equals("caigou")) {
-                                    remoteName = UploadUtils.createSCCGRemoteName(pid);
-                                    ftpUtil = new FTPUtils(FtpManager.mainAddress, 21, FtpManager
-                                            .mainName,
-                                            FtpManager.mainPwd);
-                                    ftpUtil.login();
-                                    String remotePath = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
-                                    if ("101".equals(MyApp.id)) {
-                                        remotePath = UploadUtils.CG_DIR + remoteName + ".jpg";
-                                    }
-                                    isConn = ftpUtil.upload(in, remotePath);
-                                    insertPath = UploadUtils.createInsertPath(FtpManager.DB_ADDRESS
-                                            , remotePath);
-                                } else {
-                                    remoteName = UploadUtils.getChukuRemoteName(pid);
-                                    String remotePath;
-                                    String mUrl;
-                                    if ("101".equals(MyApp.id)) {
-                                        mUrl = FtpManager.mainAddress;
-                                        ftpUtil = new FTPUtils(FtpManager.mainAddress, 21, FtpManager.mainName, FtpManager
-                                                .mainPwd);
-                                        remotePath = UploadUtils.KF_DIR + remoteName + ".jpg";
-                                    } else {
-                                        mUrl = MyApp.ftpUrl;
-                                        ftpUtil = new FTPUtils(mUrl, 21, FtpManager.ftpName, FtpManager.ftpPassword);
-                                        remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
-                                    }
-                                    ftpUtil.login();
-                                    insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
-                                    isConn = ftpUtil.upload(in, remotePath);
-                                    in.close();
-                                }
-                                ftpUtil.exitServer();
-                                Log.e("zjy", "TakePicActivity.java->run(): insertPath==" + insertPath);
-                                if (isConn) {
-                                    //更新服务器信息
-                                    SharedPreferences sp = getSharedPreferences("UserInfo", 0);
-                                    final int cid = sp.getInt("cid", -1);
-                                    final int did = sp.getInt("did", -1);
-                                    String result = "";
-                                    if (flag != null && flag.equals("caigou")) {
-                                        result = ObtainPicFromPhone.setSSCGPicInfo(WebserviceUtils.WebServiceCheckWord, cid,
-                                                did, Integer
-                                                        .parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "SCCG");
-                                        Log.e("zjy", "TakePicActivity.java->run(): SCCG==" + result);
-                                    } else {
-                                        result = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer
-                                                .parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "CKTZ");
-                                        Log.e("zjy", "TakePicActivity.java->run(): setInsert==" + result);
-                                    }
-                                    if (result.equals("操作成功")) {
-                                        MyApp.myLogger.writeInfo("takepic success:" + pid + "\t" + remoteName);
-                                    }
-                                    Message msg = mHandler.obtainMessage(PICUPLOAD_SUCCESS);
-                                    msg.obj = result;
-                                    mHandler.sendMessage(msg);
-                                } else {
-                                    mHandler.sendEmptyMessage(PICUPLOAD_ERROR);
-                                    MyApp.myLogger.writeError("takepic upload false:" + pid + "\t" + remoteName);
-                                }
-                            } catch (IOException e) {
-                                MyApp.myLogger.writeError("takepic upload Exception:" + pid + "\t" + remoteName + "-" + e
-                                        .getMessage());
-                                mHandler.sendEmptyMessage(PICUPLOAD_ERROR);
-                                e.printStackTrace();
-                            } catch (XmlPullParserException e) {
-                                mHandler.sendEmptyMessage(PICUPLOAD_ERROR);
-                                e.printStackTrace();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }.start();
-                }
+                final byte[] picData = Arrays.copyOf(tempBytes, tempBytes.length);
+                final int cRotate = tempRotate;
+                upLoadPic(cRotate, picData);
                 break;
             //设置照片大小
             case R.id.takepic_btn_setting:
@@ -620,21 +567,125 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    private void showProgressDialog() {
-        pd = new ProgressDialog(this);
-        pd.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                if (photo != null)
-                    photo.recycle();
-                if (camera != null) {
-                    camera.startPreview();
-                    isPreview = true;
+
+    public boolean getInsertResultMain(String remoteName, String insertPath) throws IOException, XmlPullParserException {
+        String result;
+        if ("caigou".equals(flag)) {
+            result = ObtainPicFromPhone.setSSCGPicInfo(WebserviceUtils.WebServiceCheckWord, cid,
+                    did, Integer.parseInt(loginID), pid, remoteName, insertPath, "SCCG");
+        } else {
+            result = setInsertPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer
+                    .parseInt(loginID), pid, remoteName, insertPath, "CKTZ");
+        }
+        Log.e("zjy", "TakePicActivity->getInsertResultMain(): InsertResult==" + result);
+        MyApp.myLogger.writeInfo("takepic insert:" + remoteName + "=" + result);
+        return "操作成功".equals(result);
+    }
+
+    public String getUploadRemotePath() {
+        String remoteName;
+        String remotePath;
+        if (flag != null && flag.equals("caigou")) {
+            remoteName = UploadUtils.createSCCGRemoteName(pid);
+            remotePath = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
+        } else {
+            remoteName = UploadUtils.getChukuRemoteName(pid);
+            remotePath = "/" + UploadUtils.getCurrentDate() + "/" + remoteName + ".jpg";
+        }
+        if (CheckUtils.isAdmin()) {
+            remotePath = UploadUtils.getTestPath(pid);
+        }
+        return remotePath;
+    }
+
+    public String getInsertPath(String remotePath) {
+        return UploadUtils.createInsertPath(mUrl, remotePath);
+    }
+
+    public void getUrlAndFtp() {
+        if (flag != null && flag.equals("caigou")) {
+            mUrl = FTPUtils.DB_HOST;
+            ftpUtil = FTPUtils.getGlobalFTP();
+        } else {
+            mUrl = kfFTP;
+            ftpUtil = FTPUtils.getLocalFTP(mUrl);
+        }
+        if (CheckUtils.isAdmin()) {
+            ftpUtil = FtpManager.getTestFTP();
+            mUrl = FtpManager.mainAddress;
+        }
+    }
+
+    public void upLoadPic(final int cRotate, final byte[] picData) {
+        if (waterBitmap == null||waterBitmap.isRecycled()) {
+            waterBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.waterpic);
+        }
+        final Bitmap bitmap = waterBitmap;
+        if (!"caigou".equals(flag)) {
+            if (kfFTP == null || "".equals(kfFTP)) {
+                if (!CheckUtils.isAdmin()) {
+                    MyToast.showToast(mContext, "读取上传地址失败，请重启程序");
+                    return;
                 }
             }
-        });
+        }
+        //以上为限定条件
+        showProgressDialog();
+        String remotePath, insertPath;
+        remotePath = getUploadRemotePath();
+        insertPath = getInsertPath(remotePath);
+        Runnable runable = new ReuseFtpRunnable(remotePath, insertPath, ftpUtil) {
+
+            @Override
+            public void onResult(int code, String err) {
+                Message msg = picHandler.obtainMessage(PICUPLOAD_ERROR);
+                if (code == SUCCESS) {
+                    msg.what = PICUPLOAD_SUCCESS;
+                } else {
+                    msg.obj = err;
+                }
+                msg.sendToTarget();
+            }
+
+            @Override
+            public InputStream getInputStream() throws Exception {
+                return getTransformedImg(cRotate, picData, bitmap);
+            }
+
+            @Override
+            public boolean getInsertResult() throws Exception {
+                String remoteName = getRemoteName();
+                String insertPath = getInsertpath();
+                if (CheckUtils.isAdmin()) {
+                    return true;
+                }
+                return getInsertResultMain(remoteName, insertPath);
+            }
+        };
+        TaskManager.getInstance().execute(runable);
+    }
+
+    public InputStream getTransformedImg(int cRotate, byte[] picData, Bitmap wtBmp) throws IOException {
+        Bitmap bmp = BitmapFactory.decodeByteArray(picData, 0, picData.length);
+        Matrix matrixs = new Matrix();
+        matrixs.setRotate(90 + cRotate);
+        Bitmap photo = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrixs, true);
+        Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(mContext, photo,
+                wtBmp);
+        Bitmap TextBitmap = ImageWaterUtils.drawTextToRightTop(mContext, waterBitmap, pid,
+                (int) (photo.getWidth() * 0.015), Color.RED, 20, 20);
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        //图片质量压缩到bao数组
+        MyImageUtls.compressBitmapAtsize(TextBitmap, bao, 0.4f);
+        MyImageUtls.releaseBitmap(bmp);
+        MyImageUtls.releaseBitmap(photo);
+        MyImageUtls.releaseBitmap(TextBitmap);
+        MyImageUtls.releaseBitmap(waterBitmap);
+        return new ByteArrayInputStream(bao.toByteArray());
+    }
+
+    protected void showProgressDialog() {
         pd.setMessage("正在上传");
-        pd.setCancelable(false);
         pd.show();
     }
 
@@ -688,39 +739,7 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
 
     public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath,
                                    String stypeID) throws IOException, XmlPullParserException {
-        String str = "";
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("checkWord", checkWord);
-        map.put("cid", cid);
-        map.put("did", did);
-        map.put("uid", uid);
-        map.put("pid", pid);
-        map.put("filename", fileName);
-        map.put("filepath", filePath);
-        map.put("stypeID", stypeID);//标记，固定为"CKTZ"
-        SoapObject request = WebserviceUtils.getRequest(map, "SetInsertPicInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
-                .ChuKuServer);
-        str = response.toString();
-        return str;
-    }
-
-    public String setSSCGPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath,
-                                 String stypeID) throws IOException, XmlPullParserException {
-        String str = "";
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("checkWord", checkWord);
-        map.put("cid", cid);
-        map.put("did", did);
-        map.put("uid", uid);
-        map.put("pid", pid);
-        map.put("filename", fileName);
-        map.put("filepath", filePath);
-        map.put("stypeID", stypeID);//标记，固定为"SCCG"
-        SoapObject request = WebserviceUtils.getRequest(map, "InsertSSCGPicInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
-                .MartStock);
-        str = response.toString();
+        String str = ChuKuServer.SetInsertPicInfo(checkWord, cid, did, uid, pid, fileName, filePath, stypeID);
         return str;
     }
 
@@ -738,9 +757,15 @@ public class TakePicActivity extends AppCompatActivity implements View.OnClickLi
         attachToSensor(mOrientationListener);
     }
 
-    private void showFinalDialog(String message) {
-        DialogUtils.cancelDialog(pd);
-        resultDialog.setMessage(message);
-        resultDialog.show();
+    protected void showFinalDialog(String message) {
+        if (!isFinishing()) {
+            if (pd != null) {
+                pd.cancel();
+            }
+            resultDialog.setMessage(message);
+            if (!isDestoryed) {
+                resultDialog.show();
+            }
+        }
     }
 }

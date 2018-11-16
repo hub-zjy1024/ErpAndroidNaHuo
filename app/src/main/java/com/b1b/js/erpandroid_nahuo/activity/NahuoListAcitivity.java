@@ -3,6 +3,7 @@ package com.b1b.js.erpandroid_nahuo.activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -28,9 +29,6 @@ import com.b1b.js.erpandroid_nahuo.entity.NahuoInfoN;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -40,7 +38,7 @@ import java.util.List;
 
 import utils.DialogUtils;
 import utils.MyToast;
-import utils.WebserviceUtils;
+import utils.wsdelegate.WebserviceUtils;
 
 public class NahuoListAcitivity extends AppCompatActivity {
 
@@ -48,6 +46,7 @@ public class NahuoListAcitivity extends AppCompatActivity {
     private List<NahuoInfoN> mLists;
     ProgressDialog pd;
     public boolean showCheckBox = false;
+    private Context mContext = NahuoListAcitivity.this;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -103,7 +102,7 @@ public class NahuoListAcitivity extends AppCompatActivity {
                     @Override
                     public void onClick(ViewHolder helper, final NahuoInfoN item) {
 
-                        DialogUtils.safeShowDialog(NahuoListAcitivity.this, pd);
+                        DialogUtils.safeShowDialog(mContext, pd);
 
                         new Thread() {
                             @Override
@@ -114,9 +113,9 @@ public class NahuoListAcitivity extends AppCompatActivity {
                                         @Override
                                         public void run() {
                                             Dialog spAlert = DialogUtils.getSpAlert
-                                                    (NahuoListAcitivity.this,
+                                                    (mContext,
                                                             "处理" + item.getPid() + "的返回结果：" + result, "提示");
-                                            DialogUtils.safeShowDialog(NahuoListAcitivity.this,
+                                            DialogUtils.safeShowDialog(mContext,
                                                     spAlert);
                                             DialogUtils.dismissDialog(pd);
                                         }
@@ -126,9 +125,9 @@ public class NahuoListAcitivity extends AppCompatActivity {
                                         @Override
                                         public void run() {
                                             Dialog spAlert = DialogUtils.getSpAlert
-                                                    (NahuoListAcitivity.this,
+                                                    (mContext,
                                                             "网络连接失败", "提示");
-                                            DialogUtils.safeShowDialog(NahuoListAcitivity.this,
+                                            DialogUtils.safeShowDialog(mContext,
                                                     spAlert);
                                             DialogUtils.dismissDialog(pd);
                                         }
@@ -144,7 +143,7 @@ public class NahuoListAcitivity extends AppCompatActivity {
             @Override
             public void onClick(ViewHolder helper, NahuoInfoN item) {
                 final String pid = item.getPid();
-                AlertDialog.Builder builder = new AlertDialog.Builder(NahuoListAcitivity.this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 builder.setTitle("上传图片：" + pid);
                 builder.setItems(new String[]{"拍照", "从手机选择", "连拍"}, new DialogInterface.OnClickListener() {
                     @Override
@@ -152,7 +151,7 @@ public class NahuoListAcitivity extends AppCompatActivity {
                         Intent intent = new Intent();
                         switch (which) {
                             case 0:
-                                intent = new Intent(NahuoListAcitivity.this, TakePicActivity
+                                intent = new Intent(mContext, TakePicActivity
                                         .class);
                                 intent.putExtra("pid", pid);
                                 intent.putExtra("flag", "caigou");
@@ -161,14 +160,14 @@ public class NahuoListAcitivity extends AppCompatActivity {
                                 MyApp.myLogger.writeInfo(getLocalClassName() + "checkpage-take");
                                 break;
                             case 1:
-                                intent = new Intent(NahuoListAcitivity.this, ObtainPicFromPhone.class);
+                                intent = new Intent(mContext, ObtainPicFromPhone2.class);
                                 intent.putExtra("pid", pid);
                                 intent.putExtra("flag", "caigou");
                                 startActivity(intent);
                                 MyApp.myLogger.writeInfo("checkpage-obtain");
                                 break;
                             case 2:
-                                intent = new Intent(NahuoListAcitivity.this, CaigouTakePic2Activity.class);
+                                intent = new Intent(mContext, CaigouTakePic2Activity.class);
                                 intent.putExtra("pid", pid);
                                 intent.putExtra("flag", "caigou");
                                 startActivity(intent);
@@ -221,14 +220,7 @@ public class NahuoListAcitivity extends AppCompatActivity {
         map.put("uid", uid);
         map.put("pid", pid);
         map.put("type", type);
-        SoapObject req = WebserviceUtils.getRequest(map, "GetMHWCInfo");
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope
-                .VER11, WebserviceUtils.MartService);
-        if (res == null) {
-            return null;
-        } else {
-            return res.toString();
-        }
+        return WebserviceUtils.getWcfResult(map, "GetMHWCInfo", WebserviceUtils.MartService);
     }
 
     public String setNahuoOk(String pid, String checkInfo) throws
@@ -238,14 +230,7 @@ public class NahuoListAcitivity extends AppCompatActivity {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         map.put("pid", pid);
         map.put("checkinfo", checkInfo);
-        SoapObject req = WebserviceUtils.getRequest(map, "SetNaHuoWanChengInfo");
-        SoapPrimitive res = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope
-                .VER11, WebserviceUtils.MartService);
-        if (res == null) {
-            return null;
-        } else {
-            return res.toString();
-        }
+        return WebserviceUtils.getWcfResult(map, "SetNaHuoWanChengInfo", WebserviceUtils.MartService);
     }
 
     public void getData(final String uid, final String pid, final String type) {
@@ -307,7 +292,7 @@ public class NahuoListAcitivity extends AppCompatActivity {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    MyToast.showToast(NahuoListAcitivity.this, mes);
+                    MyToast.showToast(mContext, mes);
                 }
             });
         }

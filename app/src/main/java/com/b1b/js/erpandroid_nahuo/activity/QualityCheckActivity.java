@@ -3,7 +3,6 @@ package com.b1b.js.erpandroid_nahuo.activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -13,7 +12,6 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.android.dev.ScanBaseActivity;
 import com.b1b.js.erpandroid_nahuo.R;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
 import com.b1b.js.erpandroid_nahuo.entity.YanhuoInfo;
@@ -21,21 +19,17 @@ import com.b1b.js.erpandroid_nahuo.entity.YanhuoInfo;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.SoapObject;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
 
 import utils.DialogUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
-import utils.UploadUtils;
-import utils.WebserviceUtils;
-import zxing.activity.CaptureActivity;
+import utils.net.ftp.UploadUtils;
+import utils.wsdelegate.MartService;
 
-public class QualityCheckActivity extends ScanBaseActivity {
+public class QualityCheckActivity extends BaseScanActivity {
 
     private EditText edPid;
     private Button btnSearch;
@@ -108,8 +102,7 @@ public class QualityCheckActivity extends ScanBaseActivity {
 
             @Override
             public void onClick(View v) {
-                Intent scanIntent = new Intent(QualityCheckActivity.this, CaptureActivity.class);
-                startActivityForResult(scanIntent, reqCode);
+                startScanActivity();
             }
         });
         pd = new ProgressDialog(this);
@@ -117,11 +110,6 @@ public class QualityCheckActivity extends ScanBaseActivity {
         pd.setMessage("正在查询");
         resultDialog = DialogUtils.createAlertDialog(this, "");
 
-    }
-
-    @Override
-    public int getLayoutResId() {
-        return R.layout.activity_quality_check;
     }
 
     @Override
@@ -328,6 +316,7 @@ public class QualityCheckActivity extends ScanBaseActivity {
                             } else {
                                 resultDialog.setMessage("返回结果：失败！！！");
                             }
+                            MyApp.myLogger.writeInfo("quality check res:" + insertResult);
                             resultDialog.show();
                         }
                     });
@@ -369,46 +358,24 @@ public class QualityCheckActivity extends ScanBaseActivity {
     }
 
     public String getCheckInfo(String pid) throws IOException, XmlPullParserException {
-        String methodName = "GetCheckInfo";
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("pid", pid);
-        map.put("cbtype", "市场采购");
-        SoapObject req = WebserviceUtils.getRequest(map, methodName);
-        SoapObject resObj = WebserviceUtils.getSoapObjResponse(req, SoapEnvelope.VER11, WebserviceUtils.MartService, 30 * 1000);
-        String result = resObj.getPropertySafelyAsString("GetCheckInfoResult");
-        Log.e("zjy", "QualityCheckActivity->getCheckInfo(): reuslt==" + resObj.toString());
+        String result = MartService.GetCheckInfo(Integer.parseInt(pid), "市场采购");
+        Log.e("zjy", "QualityCheckActivity->getCheckInfo(): reuslt==" +result);
         return result;
 
     }
 
     public String setCheckInfo(String pid, String title, String uid, String note, String type) throws IOException, XmlPullParserException {
-//        int SetCheckInfo(string pid, string title, string uid, string note, string type);SCCG
-        String methodName = "SetCheckInfo";
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("pid", pid);
-        map.put("title", title);
-        map.put("uid", uid);
-        map.put("note", note);
-        map.put("type", type);
-        SoapObject req = WebserviceUtils.getRequest(map, methodName);
-        SoapObject resObj = WebserviceUtils.getSoapObjResponse(req, SoapEnvelope.VER11, WebserviceUtils.MartService, 30 * 1000);
-        String result = resObj.getPropertySafelyAsString("SetCheckInfoResult");
-        Log.e("zjy", "QualityCheckActivity->getCheckInfo(): reuslt==" + resObj.toString());
+        String result = MartService.SetCheckInfo(pid, title, uid, note, type);
+        Log.e("zjy", "QualityCheckActivity->getCheckInfo(): reuslt==" + result);
         return result;
 
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK) {
-            if (requestCode == reqCode) {
-                String results = data.getStringExtra("result");
-                if (results != null) {
-                    scanUpdate(results);
-
-                }
-            }
+    public void getCameraScanResult(String result, int code) {
+        super.getCameraScanResult(result, code);
+        if (code == REQ_CODE) {
+            scanUpdate(result);
         }
     }
 

@@ -1,4 +1,4 @@
-package utils;
+package utils.image;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -38,8 +38,6 @@ public class MyImageUtls {
         if (newBitmap == null) {
             return null;
         }
-        int degree = readBitmapDegreeByExif(filePath);
-        Bitmap bm = rotateBitmap(newBitmap, degree);
         return newBitmap;
     }
     public static Bitmap getSmallBitmap(InputStream inputStream, int targetWidth, int targetHeight) {
@@ -330,5 +328,12 @@ public class MyImageUtls {
     public static int dp2px(Context context, float dp) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dp * scale + 0.5f);
+    }
+
+    public static void releaseBitmap(Bitmap waterBitmap) {
+        if (waterBitmap != null) {
+            waterBitmap.recycle();
+            waterBitmap = null;
+        }
     }
 }

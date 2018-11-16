@@ -1,4 +1,4 @@
-package utils;
+package utils.net;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -36,13 +36,15 @@ public class NetWorkCheck {
                 } catch (SocketException e) {
                     e.printStackTrace();
                 }
-
             } else {
                 if (info.getType() == ConnectivityManager.TYPE_WIFI) {//当前使用无线网络
-                    WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-                    WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-                    String ipAddress = intIP2StringIP(wifiInfo.getIpAddress());//得到IPV4地址
-                    return ipAddress;
+                    WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context
+                            .WIFI_SERVICE);
+                    if (wifiManager != null) {
+                        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                        String ipAddress = intIP2StringIP(wifiInfo.getIpAddress());//得到IPV4地址
+                        return ipAddress;
+                    }
                 }
             }
         } else {

@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.b1b.js.erpandroid_nahuo">
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -12,12 +13,12 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
-        android:name=".application.MyApp"
-        android:allowBackup="true"
-        android:icon="@mipmap/appicon"
-        android:label="@string/app_name"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            android:name=".application.MyApp"
+            android:allowBackup="true"
+            android:icon="@mipmap/appicon"
+            android:label="@string/app_name"
+            android:supportsRtl="true"
+            android:theme="@style/ZjyTheme">
         <activity android:name=".activity.Nh_MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -28,15 +29,12 @@
         <activity android:name=".activity.MenuActivity"/>
 
         <service
-            android:name=".services.NahuoPushService"
-            android:enabled="true"/>
+                android:name=".services.NahuoPushService"
+                android:enabled="true"/>
 
         <activity android:name=".activity.NahuoListAcitivity"/>
         <activity android:name=".activity.DialogAcitity"/>
         <activity android:name=".activity.SettingActivity"/>
-
-        <service android:name=".services.LogUploadService"/>
-
         <activity android:name="zhy.imageloader.PickPicActivity"/>
 
         <service android:name=".services.LogUploadService"/>
@@ -46,12 +44,17 @@
         <activity android:name=".activity.CaigouTakePic2Activity"/>
         <activity android:name=".activity.ViewPicByPidActivity"/>
         <activity android:name=".activity.PicDetailActivity"/>
-        <activity android:name=".activity.ObtainPicFromPhone"/>
+        <activity android:name=".activity.ObtainPicFromPhone2"/>
         <activity android:name=".activity.CaigouYanhuoActivity"/>
         <activity android:name=".activity.YanhuoCheckActivity"/>
         <activity android:name="zxing.activity.CaptureActivity"/>
         <activity android:name=".activity.QualityCheckActivity">
         </activity>
+        <activity android:name=".activity.ObtainPicFromPhone"/>
+        <activity android:name=".activity.TakePicYanhuoActivity"/>
+        <activity android:name=".activity.CaigouBaoguanActivity">
+        </activity>
+        <activity android:name=".activity.YanhuoTakepic2"/>
     </application>
 
 </manifest>

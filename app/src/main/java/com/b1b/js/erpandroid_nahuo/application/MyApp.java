@@ -16,7 +16,7 @@ import utils.LogRecoder;
  */
 
 public class MyApp extends Application implements Thread.UncaughtExceptionHandler {
-    public static List<Thread> totoalTask = new ArrayList<>();
+    public static List<Runnable> totoalTask = new ArrayList<>();
     public static String id;
     public static String ftpUrl;
     public static LogRecoder myLogger;

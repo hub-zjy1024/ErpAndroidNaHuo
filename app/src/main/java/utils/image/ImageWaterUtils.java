@@ -1,13 +1,8 @@
-package utils;
+package utils.image;
 
 import android.content.Context;
-import android.graphics.Bitmap;
+import android.graphics.*;
 import android.graphics.Bitmap.Config;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.Rect;
 
 /**
  * 图片加水印的工具类，支持图片和文字
@@ -67,6 +62,17 @@ public class ImageWaterUtils {
         return createWaterMaskBitmap(src, watermark,
                 src.getWidth() - watermark.getWidth() - dp2px(context, paddingRight),
                 src.getHeight() - watermark.getHeight() - dp2px(context, paddingBottom));
+    }
+    /**
+     * 设置水印图片在右下角
+     *
+     * @param context
+     * @param src
+     * @param watermark
+     * @return
+     */
+    public static Bitmap createWaterMaskRightBottom(Context context, Bitmap src, Bitmap watermark) {
+        return createWaterMaskRightBottom(context, src, watermark, 0, 0);
     }
 
     /**
@@ -180,6 +186,17 @@ public class ImageWaterUtils {
         return drawTextToBitmap(context, bitmap, text, paint, bounds,
                 bitmap.getWidth() - bounds.width() - dp2px(context, paddingRight),
                 dp2px(context, paddingTop) + bounds.height());
+    }
+
+    //    ImageWaterUtils.drawTextToRightTop(TakePicActivity.this, waterBitmap, pid,
+//            (int) (photo.getWidth() * 0.015), Color.RED,
+    public static int WATERTEXT_COLOR = Color.RED;
+    public static int WATERTEXT_PADDING_L =20;
+    public static int WATERTEXT_PADDING_T = 20;
+
+
+    public static Bitmap drawTextToRightTopByDef(Context context, Bitmap bitmap, String text, int size ) {
+        return drawTextToRightTop(context, bitmap, text, size, WATERTEXT_COLOR, WATERTEXT_PADDING_L ,WATERTEXT_PADDING_T);
     }
 
     /**

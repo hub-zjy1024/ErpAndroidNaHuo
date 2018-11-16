@@ -22,13 +22,12 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 
 public class AutoFoucusMgr implements Camera.AutoFocusCallback {
 
     private static final String TAG = AutoFoucusMgr.class.getSimpleName();
-    private static final long AUTO_FOCUS_INTERVAL_MS = 2500;
+    private static final long AUTO_FOCUS_INTERVAL_MS = 700;
     private static final Collection<String> FOCUS_MODES_CALLING_AF;
     private long autoFuocusTime = AUTO_FOCUS_INTERVAL_MS;
 
@@ -40,11 +39,9 @@ public class AutoFoucusMgr implements Camera.AutoFocusCallback {
         FOCUS_MODES_CALLING_AF.add(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
     }
 
-    private boolean stopped;
-    private boolean focusing;
-    private  boolean useAutoFocus;
+    private boolean stopped = false;
+    private boolean useAutoFocus;
     private final Camera camera;
-    private AsyncTask<?, ?, ?> outstandingTask;
 
     public AutoFoucusMgr(long autoDelay, Camera camera) {
         this.autoFuocusTime = autoDelay;
@@ -55,36 +52,34 @@ public class AutoFoucusMgr implements Camera.AutoFocusCallback {
         this.camera = camera;
         String currentFocusMode = camera.getParameters().getFocusMode();
         useAutoFocus = FOCUS_MODES_CALLING_AF.contains(currentFocusMode);
-//        setAutoFoucs(camera);
+        //        setAutoFoucs(camera);
         Log.e(TAG, "Current focus mode '" + currentFocusMode + "'; use auto focus? " + useAutoFocus);
         start();
     }
 
     @Override
     public synchronized void onAutoFocus(boolean success, Camera theCamera) {
-        focusing = false;
+        if (success) {
+            theCamera.cancelAutoFocus();
+        }
         autoFocusAgainLater();
     }
 
     private synchronized void autoFocusAgainLater() {
-        if (camera != null && outstandingTask == null) {
-            AutoFocusTask newTask = new AutoFocusTask();
-            try {
-                newTask.execute();
-                outstandingTask = newTask;
-            } catch (RejectedExecutionException ree) {
-                Log.w(TAG, "Could not request auto focus", ree);
-            }
+        AutoFocusTask newTask = new AutoFocusTask(this, autoFuocusTime);
+        try {
+            newTask.execute();
+        } catch (RejectedExecutionException ree) {
+            Log.w(TAG, "Could not request auto focus", ree);
         }
     }
 
     public synchronized void start() {
+        stopped = false;
         if (useAutoFocus) {
-            outstandingTask = null;
-            if (!stopped && !focusing && camera != null) {
+            if (camera != null) {
                 try {
                     camera.autoFocus(this);
-                    focusing = true;
                 } catch (RuntimeException re) {
                     // Have heard RuntimeException reported in Android 4.0.x+;
                     // continue?
@@ -96,66 +91,52 @@ public class AutoFoucusMgr implements Camera.AutoFocusCallback {
         }
     }
 
-    /**
-     如果相机支持设置自动聚焦
-     * @param camera
-     */
-    public static void setAutoFoucs(Camera camera) {
-        Camera.Parameters parameters = camera.getParameters();
-        List<String> supportedFocusModes = parameters.getSupportedFocusModes();
-        for (int i = 0; i < supportedFocusModes.size(); i++) {
-            if (supportedFocusModes.get(i).equals(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
-                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-                camera.setParameters(parameters);
-                //如果支持自动聚焦，必须设定回调
-//                camera.autoFocus(new Camera.AutoFocusCallback() {
-//                    @Override
-//                    public void onAutoFocus(boolean success, Camera camera) {
-//                        if (success) {
-//                            //聚焦成功记得取消，不然不会自动聚焦了
-//                            camera.cancelAutoFocus();
-//                        }
-//                    }
-//                });
-                break;
+    public synchronized void start(boolean isPreview) {
+        if (useAutoFocus) {
+            if (camera != null) {
+                try {
+                    if (!isPreview) {
+                        return;
+                    }
+                    camera.autoFocus(this);
+                } catch (RuntimeException re) {
+                    Log.w(TAG, "Unexpected exception while focusing", re);
+                    // Try again later to keep cycle going
+                    autoFocusAgainLater();
+                }
             }
         }
-
     }
 
-    private synchronized void cancelOutstandingTask() {
-        if (outstandingTask != null) {
-            if (outstandingTask.getStatus() != AsyncTask.Status.FINISHED) {
-                outstandingTask.cancel(true);
-            }
-            outstandingTask = null;
-        }
-    }
 
     public synchronized void stop() {
         stopped = true;
-        if (useAutoFocus) {
-            cancelOutstandingTask();
-            // Doesn't hurt to call this even if not focusing
-            try {
-                camera.cancelAutoFocus();
-            } catch (RuntimeException re) {
-                // Have heard RuntimeException reported in Android 4.0.x+;
-                // continue?
-                Log.w(TAG, "Unexpected exception while cancelling focusing", re);
-            }
+        try {
+            camera.cancelAutoFocus();
+        } catch (RuntimeException re) {
+            re.printStackTrace();
         }
     }
 
-    private final class AutoFocusTask extends AsyncTask<Object, Object, Object> {
+    static class AutoFocusTask extends AsyncTask<Object, Object, Object> {
+        private AutoFoucusMgr mgr;
+        private long autoFuocusTime;
+
+        public AutoFocusTask(AutoFoucusMgr mgr, long autoFuocusTime) {
+            this.mgr = mgr;
+            this.autoFuocusTime = autoFuocusTime;
+        }
+
         @Override
         protected Object doInBackground(Object... voids) {
             try {
                 Thread.sleep(autoFuocusTime);
             } catch (InterruptedException e) {
-                // continue
+                e.printStackTrace();
             }
-            start();
+            if (!mgr.stopped) {
+                mgr.start();
+            }
             return null;
         }
     }

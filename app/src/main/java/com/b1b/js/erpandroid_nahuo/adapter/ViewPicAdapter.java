@@ -11,7 +11,7 @@ import com.b1b.js.erpandroid_nahuo.entity.FTPImgInfo;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import utils.MyImageUtls;
+import utils.image.MyImageUtls;
 
 
 /**

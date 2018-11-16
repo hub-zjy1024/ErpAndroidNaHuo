@@ -1,4 +1,4 @@
-package utils;
+package utils.net.ftp;
 
 import android.content.Context;
 import android.os.Build;
@@ -29,15 +29,20 @@ public class UploadUtils {
     }
 
     public static String getCurrentDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy_M_d");
         Calendar calendar = Calendar.getInstance();
         String str = calendar.get(Calendar.YEAR) + "_" + (calendar.get(Calendar.MONTH) + 1) + "_" + calendar.get(Calendar
                 .DAY_OF_MONTH);
-        return str;
+        return sdf.format(new Date());
     }
     public static String getCurrentYearAndMonth() {
         Calendar calendar = Calendar.getInstance();
         String str = calendar.get(Calendar.YEAR) + "_" + (calendar.get(Calendar.MONTH) + 1) ;
         return str;
+    }
+    public static String getCurrentYearAndMonth2() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM");
+        return sdf.format(new Date());
     }
     public static String getCurrentDay() {
         Calendar calendar = Calendar.getInstance();
@@ -47,6 +52,14 @@ public class UploadUtils {
 
     public static String getCaigouRemoteDir(String fileName) {
         return  "/" + getCurrentDate() + "/" + fileName;
+    }
+
+    public static String getCaigouRemotePath(String pid) {
+        return "/" + getCurrentDate() + "/" + createSCCGRemoteName(pid) + ".jpg";
+    }
+
+    public static String getChukuPath(String pid) {
+        return "/" + getCurrentDate() + "/" + getChukuRemoteName(pid) + ".jpg";
     }
     public static String getCurrentAtSS() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -78,7 +91,7 @@ public class UploadUtils {
         StringBuilder builder = new StringBuilder();
         builder.append("SCCG_");
         builder.append(pid);
-        builder.append("_" + System.currentTimeMillis());
+        builder.append("_and_" + System.currentTimeMillis());
         return builder.toString();
     }
     public static String getDeviceID(Context mContext) {
@@ -99,4 +112,13 @@ public class UploadUtils {
         phoneId.append(deviceId);
         return phoneId.toString();
     }
+
+    public static String getTestPath(String pid) {
+        return KF_DIR + getChukuRemoteName(pid) + ".jpg";
+    }
+
+    public static String getChukuRemotePath(String nowName, String pid) {
+        return "/" + getCurrentDate() + "/" + nowName + ".jpg";
+    }
+
 }

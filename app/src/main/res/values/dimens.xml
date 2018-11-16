@@ -1,6 +1,6 @@
 <resources>
     <!-- Default screen margins, per the Android Design guidelines. -->
-    <dimen name="activity_horizontal_margin">5dp</dimen>
+    <dimen name="activity_horizontal_margin">10dp</dimen>
     <dimen name="activity_vertical_margin">5dp</dimen>
     <dimen name="bg_drable_padding">8dp</dimen>
     <dimen name="btn_padding">8dp</dimen>
@@ -14,4 +14,9 @@
     <dimen name="zjy_text_size_4">25sp</dimen>
     <dimen name="zjy_text_size_5">30sp</dimen>
     <dimen name="zjy_text_size_6">35sp</dimen>
+    <dimen name="titlewith_partno">100dp</dimen>
+    <dimen name="titlewith_counts">50dp</dimen>
+    <dimen name="titlewith_price">50dp</dimen>
+    <dimen name="item_baoguan_dur_margin">15dp</dimen>
+    <dimen name="item_baoguan_dur_margin_index">20dp</dimen>
 </resources>

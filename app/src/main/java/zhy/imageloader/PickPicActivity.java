@@ -113,7 +113,8 @@ public class PickPicActivity extends Activity implements ListImageDirPopupWindow
                 R.layout.grid_item, mImgDir.getAbsolutePath());
 
         mGirdView.setAdapter(mAdapter);
-        mImageCount.setText(totalCount + "张");
+        mChooseDir.setText(mImgDir.getAbsolutePath());
+        mImageCount.setText(mImgs.size() + "张");
     }
 
     /**

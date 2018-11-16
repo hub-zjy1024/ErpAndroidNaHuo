@@ -1,8 +1,11 @@
 package com.b1b.js.erpandroid_nahuo.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.os.Environment;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -15,19 +18,28 @@ import com.b1b.js.erpandroid_nahuo.application.MyApp;
 import com.b1b.js.erpandroid_nahuo.services.LogUploadService2;
 import com.b1b.js.erpandroid_nahuo.services.NahuoPushService;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class MenuActivity extends AppCompatActivity {
+import utils.RoomSizeUtils;
+
+public class MenuActivity extends SavedLoginInfoActivity {
 
     private final String itemYanhuo = "等待验货";
     private final String tag_QualityCheck = "质检中心";
+    private final String tag_Baoguan = "采购单报关";
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
+        Toolbar tb = (Toolbar) findViewById(R.id.dyjkf_normalTb);
+        tb.setTitle("菜单");
+        tb.setSubtitle("登录人:" + MyApp.id);
+        setSupportActionBar(tb);
         ListView lv = ((ListView) findViewById(R.id.nahuo_menu_lv));
         ArrayList<HashMap<String, Object>> list = new ArrayList<>();
         HashMap<String, Object> map = new HashMap<>();
@@ -40,6 +52,11 @@ public class MenuActivity extends AppCompatActivity {
         map.put("img", R.drawable.menu_icon_quality_check);
         map.put("description", "等待质检");
         list.add(map);
+        //        map = new HashMap<>();
+        //        map.put("title", tag_Baoguan);
+        //        map.put("img", R.drawable.menu_icon_quality_check);
+        //        map.put("description", "等待质检");
+        //        list.add(map);
         SimpleAdapter adapter = new SimpleAdapter(this, list, R.layout.item_nahuomenu_lv,
                 new String[]{"title", "img", "description"}, new int[]{R.id
                 .item_menu_nahuo_tv, R.id.item_nahuo_iv, R.id.item_nahuo_tv_description});
@@ -84,11 +101,52 @@ public class MenuActivity extends AppCompatActivity {
                         startActivity(intent);
                         MyApp.myLogger.writeInfo("<page> QualityCheck");
                         break;
+                    case tag_Baoguan:
+                        intent.setClass(MenuActivity.this, CaigouBaoguanActivity.class);
+                        startActivity(intent);
+                        MyApp.myLogger.writeInfo("<page> baoguan");
+                        break;
                 }
             }
         });
         Intent intent = new Intent(this, NahuoPushService.class);
         startService(intent);
+        MyApp.myLogger.writeInfo("login:" + MyApp.id);
+        SharedPreferences tempsp = getSharedPreferences("temp_check", MODE_PRIVATE);
+        String hasWrite = tempsp.getString("hasWrite", "");
+        if (hasWrite.equals("")) {
+            File externalStoragePublicDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+            RoomSizeUtils sizeUtils = new RoomSizeUtils(this);
+            String rootDirectoryTotal = sizeUtils.getSizeByPath(externalStoragePublicDirectory, 0);
+            String rootDirectoryAv = sizeUtils.getSizeByPath(externalStoragePublicDirectory, 1);
+            Log.e("zjy", "MenuActivity->onCreate(): totalSize==" + externalStoragePublicDirectory.getAbsolutePath() + "\t" + rootDirectoryAv +
+                    "/" + rootDirectoryTotal);
+            MyApp.myLogger.writeInfo(getClass(), "SD_Size:" + rootDirectoryAv + "/" + rootDirectoryTotal);
+            File newFile = new File(externalStoragePublicDirectory, "Camera/");
+            String[] jpegs = newFile.list(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.endsWith("jpeg") || name.endsWith("png") || name.endsWith("jpg");
+                }
+            });
+            if (jpegs.length > 0) {
+                Log.e("zjy", "MenuActivity->onCreate(): PicSize==" + jpegs.length + "\tpic1==" + jpegs[0]);
+                MyApp.myLogger.writeInfo("nowSD:" + jpegs.length + "\tpic1==" + jpegs[0]);
+            } else {
+                File[] files = externalStoragePublicDirectory.listFiles();
+                String tenmps = "";
+                for (File s : files) {
+                    tenmps += s.getName() + "\n";
+                }
+                Log.e("zjy", "MenuActivity->onCreate():CameraPath==null:" + newFile.getAbsolutePath());
+                MyApp.myLogger.writeInfo("CameraPath==null:" + newFile.getAbsolutePath() + "\nFiles:" + tenmps);
+            }
+            tempsp.edit().putString("hasWrite", "yes").apply();
+        }
+    }
+
+    public void printFile(RoomSizeUtils sizeUtils, File rootDirectory) {
+
     }
 
     @Override

@@ -113,7 +113,6 @@ public class NahuoPushService extends Service {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-
                     }
                     try {
                         Thread.sleep(10 * 60 * 1000);

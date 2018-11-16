@@ -15,11 +15,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
+import utils.image.MyImageUtls;
+
 public class MyFileUtils {
     public static File getFileParent() {
-        return fileParent;
+        return Environment.getExternalStorageDirectory();
     }
-
     private static File fileParent;
 
     /**

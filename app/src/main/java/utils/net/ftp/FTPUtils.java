@@ -1,4 +1,4 @@
-package utils;
+package utils.net.ftp;
 
 import android.util.Log;
 
@@ -17,9 +17,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Created by 张建宇 on 2017/6/29.
- * 基于commons-net3.6.jar
- */
+ Created by 张建宇 on 2017/6/29.
+ 基于commons-net3.6.jar */
 
 public class FTPUtils {
     private FTPClient mClient = null;
@@ -31,51 +30,79 @@ public class FTPUtils {
     public static final String DEF_FTP = "172.16.6.22";
     public static final String ftpName = "dyjftp";
     public static final String ftpPassword = "dyjftp";
-    public static final String mainAddress = "172.16.6.22";
+
+    public static final String DB_HOST = "172.16.6.22";
+//    public static final String mainAddress = "172.16.6.22";
+//    public static final int DEFAULT_PORT = 21;
+    public static final String mainAddress = "210.51.190.36";
+    public static final int DEFAULT_PORT = 7521;
     public static final String mainName = "NEW_DYJ";
     public static final String mainPwd = "GY8Fy2Gx";
-    public static final int DEFAULT_PORT = 7521;
+    public static final String LOCAL_NAME = "dyjftp";
+    public static final String LOCAL_PWD = "dyjftp";
+
+    public static final String ADMIN_HOST = mainAddress;
+    public static final int ADMIN_PORT = DEFAULT_PORT;
+    public static final String ADMIN_NAME = mainName;
+    public static final String ADMIN_PWD = mainPwd;
+
+    public static FTPUtils getGlobalFTP() {
+        return new FTPUtils(mainAddress, mainName, mainPwd);
+    }
+
+    public static FTPUtils getAdminFTP() {
+        return new FTPUtils(ADMIN_HOST, ADMIN_PORT, ADMIN_NAME, ADMIN_PWD);
+    }
+
+    public static FTPUtils getLocalFTP(String localHost) {
+        return getLocalFTP(localHost, 21);
+    }
+
+    public static FTPUtils getLocalFTP(String localHost, int port) {
+        return new FTPUtils(localHost, port, LOCAL_NAME, LOCAL_PWD);
+    }
+    public interface UploadListner {
+        void upload();
+    }
+
+    private UploadListner mListener;
+
+    public void setListner(UploadListner mListener) {
+        this.mListener =mListener;
+    }
     /**
-     * 调试开关，默认关闭。开启时自动打印ftp命令和回复结果
+     调试开关，默认关闭。开启时自动打印ftp命令和回复结果
      */
     private boolean isDebug = false;
 
     /**
-     * 默认不开启调试模式
-     *
-     * @param hostname
-     * @param port
-     * @param username
-     * @param password
+     默认不开启调试模式
+     @param hostname
+     @param port
+     @param username
+     @param password
      */
     public FTPUtils(String hostname, int port, String username, String password) {
+        this(hostname, port, username, password, false);
+    } //登录 /** * FTP登陆 * @throws IOException */
+
+    /**
+     默认不开启调试模式
+     @param hostname
+     @param username
+     @param password
+     */
+    public FTPUtils(String hostname, String username, String password) {
         this(hostname, DEFAULT_PORT, username, password, false);
     } //登录 /** * FTP登陆 * @throws IOException */
 
     /**
-     * 默认不开启调试模式
-     *
-     * @param hostname
-     * @param username
-     * @param password
-     */
-    public FTPUtils(String hostname, String username, String password) {
-        this(hostname, 21, username, password, false);
-    } //登录 /** * FTP登陆 * @throws IOException */
-
-    public FTPUtils(String hostname, int port, String username, String password, String truePort) {
-        this(hostname, port, username, password, false);
-
-    } //登录 /** * FTP登陆 * @throws IOException */
-
-    /**
-     * 可选调试模式
-     *
-     * @param hostname
-     * @param port
-     * @param username
-     * @param password
-     * @param isDebug  调试模式
+     可选调试模式
+     @param hostname
+     @param port
+     @param username
+     @param password
+     @param isDebug  调试模式
      */
     public FTPUtils(String hostname, int port, String username, String password, boolean isDebug) {
         this.hostname = hostname;
@@ -103,21 +130,18 @@ public class FTPUtils {
 
 
     /**
-     * 登录FTP
-     *
-     * @throws IOException
+     登录FTP
+     @throws IOException
      */
     public synchronized void login() throws IOException {
         login(15);
     }
 
     /**
-     * 登录FTP
-     *
-     * @throws IOException
+     登录FTP
+     @throws IOException
      */
     public synchronized void login(int timeout) throws IOException {
-        Log.e("zjy", "FTPUtils->login(): start login==");
         //ftp传输超时
         mClient.setDataTimeout(timeout * 1000);
         //ftp命令响应超时
@@ -125,11 +149,12 @@ public class FTPUtils {
         //连接超时
         mClient.setConnectTimeout(timeout * 1000);
         mClient.connect(hostname, port);
-//        只能在连接成功之后使用
+        //        只能在连接成功之后使用
         //ftp命令响应超时
-//        mClient.setSoTimeout(timeout * 1000);
-//        mClient.setControlEncoding("UTF-8");
-//        mClient.setControlKeepAliveTimeout(2);
+        //        mClient.setSoTimeout(timeout * 1000);
+        //文件名中有中文，下载和删除的过程中
+//                mClient.setControlEncoding("UTF-8");
+        //        mClient.setControlKeepAliveTimeout(2);
         if (!mClient.login(username, password))
             throw new IOException("FTP登陆失败，请检测登陆用户名和密码是否正确!");
         //只能在登陆成功后设置下面的才有效果
@@ -141,7 +166,7 @@ public class FTPUtils {
     }
 
     /**
-     * 得到配置 * @return
+     得到配置 * @return
      */
     private FTPClientConfig getFTPClientConfig() { /* 创建配置对象*/
         FTPClientConfig conf = new FTPClientConfig(FTPClientConfig.SYST_NT);
@@ -149,12 +174,8 @@ public class FTPUtils {
         return conf;
     }
 
-    public synchronized boolean makeDir(String path) throws IOException { /* 创建配置对象*/
-        return mClient.makeDirectory(path);
-    }
-
     /**
-     * 退出FTP服务器
+     退出FTP服务器
      */
     public synchronized void exitServer() {
         try {
@@ -170,12 +191,12 @@ public class FTPUtils {
     }
 
     /**
-     * 链接是否已经打开 * @return
+     链接是否已经打开 * @return
      */
     public synchronized boolean serverIsOpen() {
         try {
-            boolean ok = mClient.changeWorkingDirectory("/");
-            return ok;
+            mClient.printWorkingDirectory();
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -183,7 +204,7 @@ public class FTPUtils {
     }
 
     /**
-     * 列表FTP文件 * @param regEx * @return
+     列表FTP文件 * @param regEx * @return
      */
     public String[] listFiles(String regEx) {
         String[] names;
@@ -199,21 +220,19 @@ public class FTPUtils {
     }
 
     /**
-     * 取得FTP操作类的句柄 *
-     *
-     * @return
+     取得FTP操作类的句柄 *
+     @return
      */
     public synchronized FTPClient getmClient() {
         return mClient;
     }
 
     /**
-     * 上传 * @throws Exception
-     *
-     * @param localFilePath
-     * @param remoteFilePath 以“/”开头，文件名结尾（带后缀），如：/day/d1/123.txt，目录不存在会自动创建目录
-     * @return
-     * @throws Exception
+     上传 * @throws Exception
+     @param localFilePath
+     @param remoteFilePath 以“/”开头，文件名结尾（带后缀），如：/day/d1/123.txt，目录不存在会自动创建目录
+     @return
+     @throws Exception
      */
     public boolean upload(String localFilePath, String remoteFilePath) throws IOException {
         boolean state = false;
@@ -224,18 +243,16 @@ public class FTPUtils {
     }
 
     /**
-     * 上传 * @throws Exception
-     *
-     * @param localFile
-     * @param remoteFilePath 以“/”开头，文件名结尾（带后缀），如：/day/d1/123.txt，目录不存在会自动创建目录
-     * @return
-     * @throws Exception
+     上传 * @throws Exception
+     @param localFile
+     @param remoteFilePath 以“/”开头，文件名结尾（带后缀），如：/day/d1/123.txt，目录不存在会自动创建目录
+     @return
+     @throws Exception
      */
     public boolean upload
     (File localFile, String remoteFilePath) throws IOException {
-        boolean state = false;
         if (!localFile.isFile() || localFile.length() == 0) {
-            return state;
+            return false;
         }
         FileInputStream localIn = new
                 FileInputStream(localFile);
@@ -243,18 +260,16 @@ public class FTPUtils {
     }
 
     /**
-     * 上传 *
-     *
-     * @param localIn        等待上传的文件流
-     * @param remoteFilePath 以“/”开头，文件名结尾（带后缀），如：/day/d1/123.txt，目录不存在会自动创建目录
-     * @return
-     * @throws IOException
+     上传 *
+     @param localIn        等待上传的文件流
+     @param remoteFilePath 以“/”开头，文件名结尾（带后缀），如：/day/d1/123.txt，目录不存在会自动创建目录
+     @return
+     @throws IOException
      */
     public synchronized boolean upload(InputStream localIn, String remoteFilePath) throws IOException {
         int last = remoteFilePath.lastIndexOf("/");
         if (last != 0 && last != -1) {
             String path = remoteFilePath.substring(0, last);
-            //            toTargetDir(path);
             boolean dirExists = fileExists(path);
             if (!dirExists) {
                 mkDirs(path);
@@ -265,7 +280,38 @@ public class FTPUtils {
     }
 
     /**
-     * 删除文件 * @param remoteFilePath
+     上传 *
+     @param localIn        等待上传的文件流
+     @param remoteFilePath 以“/”开头，文件名结尾（带后缀），如：/day/d1/123.txt，目录不存在会自动创建目录
+     @return
+     @throws IOException
+     */
+    public synchronized boolean uploadByStream(InputStream localIn, String remoteFilePath) throws IOException {
+
+        int last = remoteFilePath.lastIndexOf("/");
+        if (last != 0 && last != -1) {
+            String path = remoteFilePath.substring(0, last);
+            boolean dirExists = fileExists(path);
+            if (!dirExists) {
+                mkDirs(path);
+                Log.e("zjy", "FTPUtils->upload(): makeDir==" + path);
+            }
+        }
+        OutputStream outputStream = mClient.storeFileStream(remoteFilePath);
+        int b;
+        byte[] buf = new byte[1024 * 8];
+
+        while ((b = localIn.read(buf)) != -1) {
+            outputStream.write(buf, 0, b);
+        }
+        outputStream.close();
+        localIn.close();
+        mClient.completePendingCommand();
+        return true;
+    }
+
+    /**
+     删除文件 * @param remoteFilePath
      */
     public synchronized boolean delFile(String remoteFilePath) {
         try {
@@ -278,7 +324,7 @@ public class FTPUtils {
     }
 
     /**
-     * 下载 * @throws Exception
+     下载 * @throws Exception
      */
     public void download(String localFilePath, String remoteFilePath) throws IOException {
         OutputStream localOut = new
@@ -300,22 +346,20 @@ public class FTPUtils {
     }
 
     /**
-     * 下载 * @throws
-     * Exception
+     下载 * @throws
+     Exception
      */
     public void download(OutputStream localOut, String remoteFilePath) throws IOException {
-        boolean result =
-                mClient.retrieveFile(remoteFilePath, localOut);
+        boolean result =mClient.retrieveFile(remoteFilePath, localOut);
         if (!result) {
             throw new IOException("文件下载失败!");
         }
     }
 
     /**
-     * 某些FTP服务器不支持一次创建多级目录，所以需要循环创建
-     *
-     * @param dirPath
-     * @throws IOException
+     某些FTP服务器不支持一次创建多级目录，所以需要循环创建
+     @param dirPath
+     @throws IOException
      */
     public synchronized void mkDirs(String dirPath) throws IOException {
         int index = dirPath.indexOf("/");

@@ -26,7 +26,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
-                <EditText
+                <com.rengwuxian.materialedittext.MaterialEditText
+                    app:met_clearButton="true"
+                    app:met_floatingLabel="none"
                     android:id="@+id/activity_quality_ed_pid"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

@@ -1,20 +1,18 @@
 package com.b1b.js.erpandroid_nahuo.activity;
 
-import android.app.NotificationManager;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
@@ -23,123 +21,113 @@ import com.b1b.js.erpandroid_nahuo.R;
 import com.b1b.js.erpandroid_nahuo.adapter.UploadPicAdapter;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
 import com.b1b.js.erpandroid_nahuo.entity.UploadPicInfo;
+import com.b1b.js.erpandroid_nahuo.handler.NoLeakHandler;
+import com.b1b.js.erpandroid_nahuo.utils.TaskManager;
+import com.b1b.js.erpandroid_nahuo.utils.UpLoadPicRunable;
+import com.b1b.js.erpandroid_nahuo.utils.UploadPicRunnable2;
 
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
-import utils.FTPUtils;
-import utils.FtpManager;
-import utils.ImageWaterUtils;
-import utils.MyImageUtls;
+import utils.CheckUtils;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
+import utils.image.ImageWaterUtils;
+import utils.image.MyImageUtls;
 import utils.MyToast;
-import utils.UploadUtils;
-import utils.WebserviceUtils;
+import utils.net.ftp.UploadUtils;
+import utils.wsdelegate.WebserviceUtils;
+import utils.wsdelegate.ChuKuServer;
 import zhy.imageloader.MyAdapter;
 import zhy.imageloader.PickPicActivity;
 
-public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClickListener {
+public class ObtainPicFromPhone extends SavedLoginInfoActivity implements NoLeakHandler.NoLeakCallback, View.OnClickListener {
 
-    private Button btn_commit;
+    protected Button btn_commit;
     private Button btn_commitOrigin;
-    private ProgressDialog pd;
-    private boolean isFirst;
-    private int onclickPosition;
-    private GridView gv;
-    private int currentIndex = 0;
+    protected ProgressDialog pd;
+    protected GridView gv;
     private final int PICUPLOAD_SUCCESS = 1;
-    private final int PICLISTUPLOAD_SUCCESS = 4;
     private final int PICUPLOAD_ERROR = 2;
-    private final int PIC_OOM = 3;
-    private final int FTP_ERROR = 8;
-    private String pid;
-    private static final Object lock = new Object();
-    private String failPid;
+    private final int REQ_SELECT_PIC = 100;
+    protected String pid;
     private MaterialDialog resultDialog;
-    //更新progressDialog
-    private Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case PICUPLOAD_SUCCESS:
-                    showFinalDialog("上传成功");
-                    int nfId = getIntent().getIntExtra("nfId", 0);
-                    UploadPicInfo upInfo = uploadPicInfos.get(onclickPosition);
-                    if (nfId != 0) {
-                        String path = upInfo.getPath();
-                        String name = path.substring(path.lastIndexOf("/") + 1);
-                        NotificationManager nManager = (NotificationManager) getSystemService
-                                (NOTIFICATION_SERVICE);
-                        //                        NotificationCompat.Builder builder = new
-                        // NotificationCompat.Builder
-                        // (ObtainPicFromPhone.this);
-                        //                        Bitmap largeIcon = BitmapFactory.decodeResource
-                        // (getResources(), R.mipmap
-                        // .notify_icon_large);
-                        //                        builder.setContentTitle("上传" + failPid + "图片");
-                        //                        builder.setContentText(name + "上传成功").setSmallIcon(R
-                        // .mipmap.notify_icon)
-                        // .setLargeIcon(largeIcon);
-                        nManager.cancel(nfId);
-                    }
-                    upInfo.setState("1");
-                    mGvAdapter.notifyDataSetChanged();
-                    break;
-                case PICUPLOAD_ERROR:
-                    showFinalDialog("上传失败");
-                    mGvAdapter.notifyDataSetChanged();
-                    break;
-                case 6:
-                    pd.setMessage("上传了" + (currentIndex + 1) + "/" + uploadPicInfos.size());
-                    UploadPicInfo up1 = uploadPicInfos.get(currentIndex);
-                    up1.setState("1");
-                    mGvAdapter.notifyDataSetChanged();
-                    break;
-                case PIC_OOM:
-                    showFinalDialog("上传失败,图片过大，超出可用内存");
-                    mGvAdapter.notifyDataSetChanged();
-                    break;
-                case PICLISTUPLOAD_SUCCESS:
-                    showFinalDialog("批量上传成功");
-                    mGvAdapter.notifyDataSetChanged();
-                    break;
-                case FTP_ERROR:
-                    MyToast.showToast(ObtainPicFromPhone.this, "连接ftp失败，请检查网络");
-                    mGvAdapter.notifyDataSetChanged();
-                    break;
+    protected Context mContext = ObtainPicFromPhone.this;
+    protected int count = 0;
+    protected String uploadResult = "";
+
+    @Override
+    public void handleMessage(Message msg) {
+        int arg1 = msg.arg1;
+        int arg2 = msg.arg2;
+        Object obj = msg.obj;
+        int picSize = uploadPicInfos.size();
+        String err = "上传失败";
+        switch (msg.what) {
+            case PICUPLOAD_SUCCESS:
+                err = "上传成功";
+                uploadResult += "图片" + arg1 + ":" + err + "\n";
+                solveResult(arg1, arg2, picSize, err);
+                UploadPicInfo upInfo = uploadPicInfos.get(arg1);
+                upInfo.setState("1");
+                mGvAdapter.notifyDataSetChanged();
+                break;
+            case PICUPLOAD_ERROR:
+                if (obj != null) {
+                    err = obj.toString();
+                }
+                err = "上传失败:" + err;
+                uploadResult += "图片" + arg1 + ":" + err + "！！！\n";
+                solveResult(arg1, arg2, picSize, err);
+                break;
+        }
+    }
+
+    private void solveResult(int arg1, int arg2, int picSize, String err) {
+        count++;
+        if (arg2 == 1) {
+            uploadResult = "图片" + arg1 + ":" + err + "\n";
+            showFinalDialog(uploadResult);
+        } else {
+            pd.setMessage("上传了" + (count) + "/" + uploadPicInfos.size());
+            if (count >= picSize) {
+                showFinalDialog(uploadResult);
             }
         }
-    };
+    }
 
-    private void showFinalDialog(String message) {
+    private Handler nHandler = new NoLeakHandler(this);
+    protected int cid;
+    protected int did;
+
+    protected void showFinalDialog(String message) {
         pd.cancel();
         resultDialog.setMessage(message);
         resultDialog.show();
     }
 
-    private EditText edName;
-    private List<UploadPicInfo> uploadPicInfos;
-    private UploadPicAdapter mGvAdapter;
-    private EditText edPid;
-    private String failPath;
+    protected EditText edName;
+    protected List<UploadPicInfo> uploadPicInfos;
+    protected UploadPicAdapter mGvAdapter;
+    protected EditText edPid;
+    protected String failPath;
+
+    private SharedPreferences userInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         setContentView(R.layout.activity_re_view);
-        isFirst = true;
         btn_commitOrigin = (Button) findViewById(R.id.review_getFromPhone);
         btn_commit = (Button) findViewById(R.id.review_commit);
         edName = (EditText) findViewById(R.id.review_name);
@@ -150,7 +138,7 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
         uploadPicInfos = new ArrayList<>();
         pd = new ProgressDialog(this);
         //初始化结果对话框
-        resultDialog = new MaterialDialog(ObtainPicFromPhone.this);
+        resultDialog = new MaterialDialog(mContext);
         resultDialog.setTitle("提示");
         resultDialog.setPositiveButton("返回", new View.OnClickListener() {
             @Override
@@ -162,99 +150,157 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
         resultDialog.setCanceledOnTouchOutside(true);
         Intent intent = getIntent();
         pid = intent.getStringExtra("pid");
-        failPath = intent.getStringExtra("failPath");
-        if (failPath != null) {
-            uploadPicInfos.add(new UploadPicInfo("-1", failPath));
-        }
-        if (uploadPicInfos.size() > 0) {
-            btn_commit.setEnabled(true);
-        }
-        failPid = intent.getStringExtra("failPid");
-        if (failPid != null) {
-            edPid.setText(failPid);
-        }
         if (pid != null) {
             edPid.setText(pid);
         }
-        //初始化ftp
-        mGvAdapter = new UploadPicAdapter(ObtainPicFromPhone.this, uploadPicInfos, new UploadPicAdapter
-                .OnItemBtnClickListener() {
+        userInfo = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
+        SharedPreferences sp = userInfo;
+        cid = sp.getInt("cid", -1);
+        did = sp.getInt("did", -1);
+        mGvAdapter = new UploadPicAdapter(mContext, uploadPicInfos, new UploadPicAdapter.OnItemBtnClickListener() {
             @Override
-            public void onClick(View v, int position) {
+            public void onClick(View v, final int position) {
                 final UploadPicInfo uploadPicInfo = uploadPicInfos.get(position);
                 pid = edPid.getText().toString().trim();
-                if (TakePicActivity.checkPid(ObtainPicFromPhone.this, pid, 5))
+                if (checkPid(5)) {
                     return;
-                if (uploadPicInfo.getState().equals("-1")) {
-                    Button btn = (Button) v;
-                    btn.setText("正在上传");
-                    onclickPosition = position;
-                    SharedPreferences sp = getSharedPreferences("UserInfo", 0);
-                    final int cid = sp.getInt("cid", -1);
-                    final int did = sp.getInt("did", -1);
-                    showProgressDialog();
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            super.run();
-                            try {
-                                if (commitImage(uploadPicInfo, cid, did, pid)) {
-                                    handler.sendEmptyMessage(PICUPLOAD_SUCCESS);
-                                    MyApp.myLogger.writeInfo("obtainpic ok:" + pid);
-                                } else {
-                                    handler.sendEmptyMessage(PICUPLOAD_ERROR);
-                                }
-                            } catch (OutOfMemoryError e) {
-                                handler.sendEmptyMessage(PIC_OOM);
-                                int[] wh = MyImageUtls.getBitmapWH(uploadPicInfo.getPath());
-                                MyApp.myLogger.writeError("obtainpic oom:" + wh[0] + "X" + wh[1] +
-                                        "-memory:" + Runtime.getRuntime().freeMemory() + "/" + Runtime
-                                        .getRuntime().maxMemory());
-                                e.printStackTrace();
-                            } catch (FileNotFoundException e) {
-                                handler.sendEmptyMessage(PICUPLOAD_ERROR);
-                                e.printStackTrace();
-                            } catch (XmlPullParserException e) {
-                                handler.sendEmptyMessage(PICUPLOAD_ERROR);
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                MyApp.myLogger.writeError("obtainpic IO:" + e.getMessage());
-                                handler.sendEmptyMessage(PICUPLOAD_ERROR);
-                                e.printStackTrace();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }.start();
-
-                } else {
-                    MyToast.showToast(ObtainPicFromPhone.this, "当前图片已经上传完成");
                 }
+                if (!uploadPicInfo.getState().equals("-1")) {
+                    MyToast.showToast(mContext, "当前图片已经上传完成");
+                    return;
+                }
+                Button btn = (Button) v;
+                btn.setText("正在上传");
+                showProgressDialog();
+                uploadResult = "";
+                nUpload(position, uploadPicInfo, 1);
             }
         });
         gv.setAdapter(mGvAdapter);
     }
 
+    public boolean checkPid(int len) {
+        return TakePicActivity.checkPid(mContext, pid, len);
+    }
 
-    public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String
-            fileName, String filePath,
+    private void nUpload(final int position, final UploadPicInfo uploadPicInfo, final int arg2) {
+        final String intentFlag = getIntent().getStringExtra("flag");
+        String insertPath;
+        String remoteName;
+        String remotePath;
+        String mUrl;
+        FTPUtils ftpUtil = null;
+        UpLoadPicRunable runable = null;
+        if (intentFlag != null && intentFlag.equals("caigou")) {
+            mUrl = FtpManager.DB_ADDRESS;
+            ftpUtil = FTPUtils.getGlobalFTP();
+            String tempRemoteName = UploadUtils.createSCCGRemoteName(pid);
+            remoteName = getRemarkName(tempRemoteName, true);
+            remotePath = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
+        } else {
+            mUrl = MyApp.ftpUrl;
+            ftpUtil = new FTPUtils(mUrl, FtpManager.ftpName, FtpManager.ftpPassword);
+            String tempRemoteName = UploadUtils.getChukuRemoteName(pid);
+            remoteName = getRemarkName(tempRemoteName, true);
+            remotePath = UploadUtils.getChukuRemotePath(remoteName, pid);
+        }
+        if (CheckUtils.isAdmin()) {
+            mUrl = FtpManager.DB_ADDRESS;
+            String tempRemoteName  = UploadUtils.getChukuRemoteName(pid);
+            remoteName = getRemarkName(tempRemoteName, true);
+            remotePath = "/Zjy/kf/" + remoteName + ".jpg";
+            ftpUtil = FtpManager.getTestFTPMain();
+        }
+        insertPath = UploadUtils.createInsertPath(mUrl, remotePath);
+        runable = new UploadPicRunnable2(remotePath, insertPath, ftpUtil) {
+
+            @Override
+            public void onResult(int code, String err) {
+                Message msg = nHandler.obtainMessage();
+                msg.arg1 = position;
+                msg.arg2 = arg2;
+                if (code == SUCCESS) {
+                    msg.what = PICUPLOAD_SUCCESS;
+                } else {
+                    MyApp.myLogger.writeError(ObtainPicFromPhone.class, "ftp:" + MyApp.ftpUrl + "\t");
+                    msg.what = PICUPLOAD_ERROR;
+                    msg.obj = err;
+                }
+                nHandler.sendMessage(msg);
+            }
+
+            @Override
+            public boolean getInsertResult() throws Exception {
+                String remoteName = getRemoteName();
+                String insertPath = getInsertpath();
+                Log.e("zjy", "ObtainPicFromPhone->getInsertResult(): insertpath==" + insertPath);
+                if (CheckUtils.isAdmin()) {
+                    return true;
+                }
+                String res = "";
+                if ("caigou".equals(intentFlag)) {
+                    res = setSSCGPicInfo("", cid,
+                            did, Integer.parseInt(loginID), pid, remoteName, insertPath, "SCCG");
+                } else {
+                    res = setInsertPicInfo("", cid,
+                            did, Integer.parseInt(loginID), pid, remoteName, insertPath, "CKTZ");
+                }
+                return res.equals("操作成功");
+            }
+
+            @Override
+            public InputStream getInputStream() throws Exception {
+                String fPath = uploadPicInfo.getPath();
+                return getTransferedImg(fPath);
+            }
+        };
+        TaskManager.getInstance().execute(runable);
+    }
+
+    public String getFormateName(String tPid) {
+        String encoding = "iso-8859-1";
+        String remoteName = UploadUtils.getChukuRemoteName(tPid);
+        remoteName = getRemarkName(remoteName, true);
+        try {
+            remoteName = new String(remoteName.getBytes(), encoding);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return remoteName;
+    }
+
+    public InputStream getTransferedImg(String filePath) throws IOException {
+        String fPath = filePath;
+        FileInputStream inputStream = new FileInputStream(fPath);
+        try {
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            Bitmap waterBitmap = null;
+            if (bitmap.getWidth() >= 1080 && bitmap.getHeight() > 1080) {
+                waterBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.waterpic);
+            } else {
+                waterBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.water_small);
+            }
+            Bitmap textBitmap = ImageWaterUtils.drawTextToRightTopByDef(mContext, bitmap, pid, (int) (bitmap
+                    .getWidth() * 0.015));
+            Bitmap compressImage = ImageWaterUtils.createWaterMaskRightBottom(mContext, textBitmap,
+                    waterBitmap);
+            ByteArrayOutputStream bao = new ByteArrayOutputStream();
+            MyImageUtls.compressBitmapAtsize(compressImage, bao, 0.4f);
+            ByteArrayInputStream bai = new ByteArrayInputStream(bao.toByteArray());
+            MyImageUtls.releaseBitmap(waterBitmap);
+            MyImageUtls.releaseBitmap(bitmap);
+            MyImageUtls.releaseBitmap(textBitmap);
+            MyImageUtls.releaseBitmap(compressImage);
+            return bai;
+        } catch (OutOfMemoryError e) {
+            e.printStackTrace();
+            throw new IOException(e);
+        }
+    }
+
+    public String setInsertPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String filePath,
                                    String stypeID) throws IOException, XmlPullParserException {
-        String str = "";
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("checkWord", checkWord);
-        map.put("cid", cid);
-        map.put("did", did);
-        map.put("uid", uid);
-        map.put("pid", pid);
-        map.put("filename", fileName);
-        map.put("filepath", filePath);
-        map.put("stypeID", stypeID);//标记，固定为"CKTZ"
-        SoapObject request = WebserviceUtils.getRequest(map, "SetInsertPicInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11,
-                WebserviceUtils
-                        .ChuKuServer);
-        str = response.toString();
-        Log.e("zjy", "ObtainPicFromPhone.java->setInsertPicInfo(): insertRes==" + str);
+        String str = ChuKuServer.SetInsertPicInfo(checkWord, cid, did, uid, pid, fileName, filePath, stypeID);
         return str;
     }
 
@@ -263,158 +309,36 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
         switch (v.getId()) {
             case R.id.review_commit:
                 pid = edPid.getText().toString().trim();
-                if (TakePicActivity.checkPid(ObtainPicFromPhone.this, pid, 5))
+                if (checkPid(5))
                     return;
+                if (uploadPicInfos.size() == 0) {
+                    MyToast.showToast(mContext, "请先添加一张图片");
+                    return;
+                }
                 showProgressDialog();
-                new Thread() {
-                    @Override
-                    public void run() {
-                        if (commitImages(uploadPicInfos)) {
-                            handler.sendEmptyMessage(PICLISTUPLOAD_SUCCESS);
-                        }
+                count = 0;
+                uploadResult = "";
+                for (int i = 0; i < uploadPicInfos.size(); i++) {
+                    UploadPicInfo item = uploadPicInfos.get(i);
+                    if (!item.getState().equals("1")) {
+                        nUpload(i, item, 2);
+                    } else {
+                        count++;
+                        MyToast.showToast(mContext, "图片" + i + "已上传完成");
                     }
-                }.start();
+                }
+                if (count == uploadPicInfos.size()) {
+                    MyToast.showToast(mContext, "所有图片已上传完成");
+                    pd.cancel();
+                }
                 break;
             case R.id.review_getFromPhone:
-                Intent intent = new Intent(ObtainPicFromPhone.this, PickPicActivity.class);
-                startActivityForResult(intent, 100);
+                Intent intent = new Intent(mContext, PickPicActivity.class);
+                startActivityForResult(intent, REQ_SELECT_PIC);
                 break;
         }
     }
 
-    /**
-     * @param uploadPicInfos
-     * @throws IOException
-     * @throws XmlPullParserException
-     */
-    private boolean commitImages(List<UploadPicInfo> uploadPicInfos) {
-        boolean success = false;
-        SharedPreferences sp = getSharedPreferences("UserInfo", 0);
-        final int cid = sp.getInt("cid", -1);
-        final int did = sp.getInt("did", -1);
-        for (int i = 0; i < uploadPicInfos.size(); i++) {
-            if (uploadPicInfos.get(i).getState().equals("-1")) {
-                try {
-                    if (commitImage(uploadPicInfos.get(i), cid, did, pid)) {
-                        currentIndex = i;
-                        handler.sendEmptyMessage(6);
-                    } else {
-                        handler.sendEmptyMessage(PICUPLOAD_ERROR);
-                        return success;
-                    }
-                } catch (OutOfMemoryError e) {
-                    handler.sendEmptyMessage(PIC_OOM);
-                    int[] wh = MyImageUtls.getBitmapWH(uploadPicInfos.get(i).getPath());
-                    MyApp.myLogger.writeError("obtainpic oom:" + wh[0] + "X" + wh[1] + "-memory:" + Runtime
-                            .getRuntime().freeMemory() + "/" + Runtime.getRuntime().maxMemory());
-                    e.printStackTrace();
-                    return success;
-                } catch (IOException e) {
-                    handler.sendEmptyMessage(PICUPLOAD_ERROR);
-                    e.printStackTrace();
-                    MyApp.myLogger.writeError("obtainpic IO:" + e.getMessage());
-                    return success;
-                } catch (XmlPullParserException e) {
-                    handler.sendEmptyMessage(PICUPLOAD_ERROR);
-                    e.printStackTrace();
-                    return success;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        success = true;
-        return success;
-    }
-
-    private boolean commitImage(UploadPicInfo uploadPicInfo, int cid, int did, String pid) throws Exception {
-        InputStream inputStream = new FileInputStream(uploadPicInfo.getPath());
-        boolean flag = false;
-        String fileName = UploadUtils.getChukuRemoteName(pid);
-        if (failPid != null) {
-            //重新上传失败的文件
-            fileName = failPath.substring(failPath.lastIndexOf("/") + 1, failPath.lastIndexOf("."));
-            fileName = getRemarkName(fileName, false);
-        } else {
-            fileName = getRemarkName(fileName, true);
-            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-            Bitmap waterBitmap = null;
-            if (bitmap != null) {
-                if (bitmap.getWidth() > 1080 && bitmap.getHeight() > 1080) {
-                    waterBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.waterpic);
-                } else {
-                    waterBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.water_small);
-                }
-                Bitmap textBitmap = ImageWaterUtils.drawTextToRightTop(ObtainPicFromPhone.this, bitmap,
-                        pid, (int) (bitmap
-                                .getWidth() * 0.015), Color.RED, 20, 20);
-                if (!bitmap.isRecycled()) {
-                    bitmap.recycle();
-                }
-                Bitmap compressImage = ImageWaterUtils.createWaterMaskRightBottom(ObtainPicFromPhone.this,
-                        textBitmap,
-                        waterBitmap, 0, 0);
-                if (!waterBitmap.isRecycled()) {
-                    waterBitmap.recycle();
-                }
-                if (!textBitmap.isRecycled()) {
-                    textBitmap.recycle();
-                }
-                ByteArrayInputStream bai = new ByteArrayInputStream(MyImageUtls.compressBitmapAtsize
-                        (compressImage, 0.4f));
-                if (compressImage != null && !compressImage.isRecycled()) {
-                    compressImage.recycle();
-                }
-                String intentFlag = getIntent().getStringExtra("flag");
-                if (intentFlag != null && intentFlag.equals("caigou")) {
-                    boolean isSuccess;
-                    //文件名或者目录中有中文需要转码 new String(fileName.getBytes("UTF-8"), "iso-8859-1")
-                    String insertPath;
-                    String remoteName = UploadUtils.createSCCGRemoteName(pid);
-                    String ftpAddress = FtpManager.mainAddress;
-                    FTPUtils FTPUtils = new FTPUtils(ftpAddress, 21, FtpManager
-                            .mainName, FtpManager.mainPwd);
-                    FTPUtils.login();
-                    remoteName = getRemarkName(remoteName, false);
-                    String remotePath = "";
-                    if ("101".equals(MyApp.id)) {
-                        remotePath = UploadUtils.CG_DIR + remoteName + ".jpg";
-                    } else {
-                        remotePath = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
-                    }
-                    Log.e("zjy", "ObtainPicFromPhone->commitImage(): remote==" + remotePath);
-                    isSuccess = FTPUtils.upload(bai, new String(remotePath.getBytes("UTF-8"), "iso-8859-1"));
-                    bai.close();
-                    FTPUtils.exitServer();
-                    insertPath = UploadUtils.createInsertPath(FtpManager.DB_ADDRESS, remotePath);
-                    Log.e("zjy", "ObtainPicFromPhone->commitImage(): SCCGPATH==" + insertPath);
-                    if (isSuccess) {
-                        String result = setSSCGPicInfo(WebserviceUtils.WebServiceCheckWord, cid, did, Integer
-                                .parseInt(MyApp.id), pid, remoteName + ".jpg", insertPath, "SCCG");
-                        Log.e("zjy", "ObtainPicFromPhone.java->run(): SCCG==" + result);
-                        if (result.equals("操作成功")) {
-                            flag = true;
-                        }
-                    }
-                }
-            }
-        }
-        return flag;
-    }
-
-    public synchronized static String setSSCGPicInfo(String checkWord, int cid, int did, int uid, String
-            pid, String fileName, String filePath, String stypeID) throws IOException,
-            XmlPullParserException {
-        String str = "";
-        str = insertPICYH(fileName, filePath, String.valueOf(uid), String.valueOf(cid), String.valueOf(did),
-                String.valueOf(uid), pid, "市场采购单");
-        if ("保存成功".equals(str)) {
-            return "操作成功";
-        }
-        return "失败";
-    }
-
-    //    billID 单据号：billType 单据类型（市场采购）
 
     public static String insertPICYH(String PictureName, String PictureURL, String MakerID, String CorpID,
                                      String DeptID, String UserID, String pid, String billType)
@@ -431,31 +355,45 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
         map.put("UserID", UserID);
         map.put("billID", pid);
         map.put("billType", "市场采购单");//标记，固定为"CKTZ"
-        SoapObject request = WebserviceUtils.getRequest(map, "InsertPicYHInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11,
-                WebserviceUtils.MartService);
-        return response.toString();
+        return WebserviceUtils.getWcfResult(map, "InsertPicYHInfo", WebserviceUtils.MartService);
     }
 
-
+    public synchronized static String setSSCGPicInfo(String checkWord, int cid, int did, int uid, String
+            pid, String fileName, String filePath, String stypeID) throws IOException,
+            XmlPullParserException {
+        String str = "";
+        str = insertPICYH(fileName, filePath, String.valueOf(uid), String.valueOf(cid), String.valueOf(did),
+                String.valueOf(uid), pid, "市场采购单");
+        if ("保存成功".equals(str)) {
+            return "操作成功";
+        }
+        return "失败";
+    }
     @NonNull
-    private String getRemarkName(String fileName, boolean hasSuffix) {
+    protected String getRemarkName(String fileName, boolean hasSuffix) {
         String name = fileName;
         String remark = edName.getText().toString().trim();
         //从手机取的图片，文件后缀加"_o"
         String suffix = "_o";
         if (hasSuffix) {
-            if (!"".equals(remark)) {
+            if (!TextUtils.isEmpty(remark)) {
                 name = fileName + "_" + remark + suffix;
             } else {
                 name = fileName + suffix;
             }
         } else {
-            if (!"".equals(remark)) {
+            if (!TextUtils.isEmpty(remark)) {
                 name = fileName + "_" + remark;
             }
         }
-        return name;
+        String encoding = "iso-8859-1";
+        String finalName = name;
+        try {
+            finalName = new String(name.getBytes(), encoding);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return finalName;
     }
 
     public void showProgressDialog() {
@@ -469,13 +407,12 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 100 & resultCode == RESULT_OK) {
+        if (requestCode == REQ_SELECT_PIC & resultCode == RESULT_OK) {
             ArrayList<String> returnPaths = data.getStringArrayListExtra("imgPaths");
             if (returnPaths.size() > 0) {
                 btn_commit.setEnabled(true);
             }
             uploadPicInfos.clear();
-            Log.e("zjy", "ObtainPicFromPhone.java->onActivityResult(): imgPaths==" + returnPaths.size());
             for (int i = 0; i < returnPaths.size(); i++) {
                 UploadPicInfo info = new UploadPicInfo("-1", returnPaths.get(i));
                 uploadPicInfos.add(info);
@@ -487,7 +424,6 @@ public class ObtainPicFromPhone extends AppCompatActivity implements View.OnClic
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e("zjy", "ObtainPicFromPhone.java->onDestroy(): clear uploadpicinfos");
         MyAdapter.mSelectedImage.clear();
     }
 }

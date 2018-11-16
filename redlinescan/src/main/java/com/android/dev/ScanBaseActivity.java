@@ -12,21 +12,6 @@ import java.lang.ref.WeakReference;
 
 public abstract class ScanBaseActivity extends AppCompatActivity {
     protected Handler scanHandler = new ScanHandler(this);
-//    protected Handler scanHandler = new Handler() {
-//        @Override
-//        public void handleMessage(Message msg) {
-//            super.handleMessage(msg);
-//            switch (msg.what) {
-//                case BarcodeAPI.BARCODE_READ:
-//                    if (msg.obj != null) {
-//                        Log.e("zjy", "ScanBaseActivity->handleMessage(): jiguangBack==" + msg.obj.toString());
-//                        resultBack(msg.obj.toString());
-//                    }
-//                    break;
-//            }
-//        }
-//    };
-
         static class ScanHandler extends Handler {
 
             private ScanHandler(ScanBaseActivity ac) {

@@ -2,6 +2,7 @@ package com.b1b.js.erpandroid_nahuo.activity;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,25 +23,21 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import utils.DialogUtils;
-import utils.FTPUtils;
-import utils.FtpManager;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
 import utils.MyFileUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
+import utils.wsdelegate.MartService;
 
 public class ViewPicByPidActivity extends AppCompatActivity {
 
@@ -56,6 +53,7 @@ public class ViewPicByPidActivity extends AppCompatActivity {
     private AlertDialog alertDialog;
     private String downloadResult = "";
 
+    private Context mContext = ViewPicByPidActivity.this;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -74,19 +72,19 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                         alertDialog.setMessage("没有数据");
                     }
                     alertDialog.show();
-                    SoftKeyboardUtils.closeInputMethod(edPid, ViewPicByPidActivity.this);
+                    SoftKeyboardUtils.closeInputMethod(edPid, mContext);
                     break;
                 case 1:
                     dismissDialog();
-                    MyToast.showToast(ViewPicByPidActivity.this, "当前单据没有对应的图片");
+                    MyToast.showToast(mContext, "当前单据没有对应的图片");
                     break;
                 case 2:
                     dismissDialog();
-                    MyToast.showToast(ViewPicByPidActivity.this, "当前网络质量较差，请重试");
+                    MyToast.showToast(mContext, "当前网络质量较差，请重试");
                     break;
                 case 3:
                     dismissDialog();
-                    MyToast.showToast(ViewPicByPidActivity.this, "图片上传地址不在本地服务器，无法访问");
+                    MyToast.showToast(mContext, "图片上传地址不在本地服务器，无法访问");
                     break;
                 case 4:
                     int totalSize = msg.arg1;
@@ -95,7 +93,7 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                     break;
                 case 5:
                     dismissDialog();
-                    MyToast.showToast(ViewPicByPidActivity.this, "图片上传地址不在本地服务器，无法访问");
+                    MyToast.showToast(mContext, "图片上传地址不在本地服务器，无法访问");
                     break;
             }
         }
@@ -115,9 +113,9 @@ public class ViewPicByPidActivity extends AppCompatActivity {
         gv = (GridView) findViewById(R.id.view_pic_gv);
         btnSearch = (Button) findViewById(R.id.view_pic_btn_search);
         imgsData = new ArrayList<>();
-        adapter = new ViewPicAdapter(imgsData, ViewPicByPidActivity.this, R.layout.item_viewpicbypid);
+        adapter = new ViewPicAdapter(imgsData, mContext, R.layout.item_viewpicbypid);
         gv.setAdapter(adapter);
-        pd = new ProgressDialog(ViewPicByPidActivity.this);
+        pd = new ProgressDialog(mContext);
         pd.setCancelable(false);
         btnSearch.setOnClickListener(new View.OnClickListener() {
                                          @Override
@@ -125,17 +123,17 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                                              final String pid = edPid.getText().toString().trim();
                                              imgsData.clear();
                                              if (pid.equals("")) {
-                                                 MyToast.showToast(ViewPicByPidActivity.this, "请输入单据号");
+                                                 MyToast.showToast(mContext, "请输入单据号");
                                                  return;
                                              }
                                              adapter.notifyDataSetChanged();
                                              File imgFile = MyFileUtils.getFileParent();
                                              if (imgFile == null) {
-                                                 MyToast.showToast(ViewPicByPidActivity.this, "当前无可用的存储设备");
+                                                 MyToast.showToast(mContext, "当前无可用的存储设备");
                                                  return;
                                              }
                                              final File file = new File(imgFile, "dyj_img/");
-                                             MyFileUtils.checkImgFileSize(file, 100, ViewPicByPidActivity.this);
+                                             MyFileUtils.checkImgFileSize(file, 100, mContext);
                                              startSearch(pid);
                                          }
                                      }
@@ -145,7 +143,7 @@ public class ViewPicByPidActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 FTPImgInfo item = (FTPImgInfo) parent.getItemAtPosition(position);
                 if (item != null) {
-                    Intent mIntent = new Intent(ViewPicByPidActivity.this, PicDetailActivity.class);
+                    Intent mIntent = new Intent(mContext, PicDetailActivity.class);
                     mIntent.putExtra("path", item.getImgPath());
                     ArrayList<String> paths = new ArrayList<>();
                     for (int i = 0; i < imgsData.size(); i++) {
@@ -170,11 +168,11 @@ public class ViewPicByPidActivity extends AppCompatActivity {
             edPid.setText(pid);
             File imgFile = MyFileUtils.getFileParent();
             if (imgFile == null) {
-                MyToast.showToast(ViewPicByPidActivity.this, "当前无可用的存储设备");
+                MyToast.showToast(mContext, "当前无可用的存储设备");
                 return;
             }
             if (pid.equals("")) {
-                MyToast.showToast(ViewPicByPidActivity.this, "请输入单据号");
+                MyToast.showToast(mContext, "请输入单据号");
                 return;
             }
             startSearch(pid);
@@ -240,11 +238,15 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                             if (!file.exists()) {
                                 if (!tempUrl.equals(imgFtp)) {
                                     if (finalHost.equals(FtpManager.DB_ADDRESS)) {
-                                        mFtpClient = new FTPUtils(FtpManager.mainAddress, port, FtpManager
-                                                .mainName, FtpManager.mainPwd);
+                                        mFtpClient =  FTPUtils.getGlobalFTP();
                                     } else {
-                                        mFtpClient = new FTPUtils(finalHost, port, FtpManager.ftpName,
-                                                FtpManager.ftpPassword, null);
+                                        mFtpClient = FTPUtils.getLocalFTP(finalHost);
+                                    }
+                                }else {
+                                    if (finalHost.equals(FtpManager.DB_ADDRESS)) {
+                                        mFtpClient =  FTPUtils.getGlobalFTP();
+                                    } else {
+                                        mFtpClient = FTPUtils.getLocalFTP(finalHost);
                                     }
                                 }
                                 Log.e("zjy", "ViewPicByPidActivity->run(): fileName==" + imgUrl);
@@ -296,25 +298,8 @@ public class ViewPicByPidActivity extends AppCompatActivity {
         }
     }
 
-    //    GetBILL_PictureRelatenfoByID
-    //    name="checkWord" type="xs:string"
-    //   name="ID" type="xs:string"
-    public String getRelativePicInfoByPid(String checkWord, String pid) throws IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("checkWord", checkWord);
-        map.put("ID", pid);
-        SoapObject request = WebserviceUtils.getRequest(map, "GetYHPicInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
-                .ChuKuServer);
-        return response.toString();
-    }
 
     public static String getYHPIC(String typeAndPid) throws IOException, XmlPullParserException {
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("pid", typeAndPid);
-        SoapObject request = WebserviceUtils.getRequest(map, "GetYHPicInfo");
-        SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11,
-                WebserviceUtils.MartService);
-        return response.toString();
+        return MartService.GetYHPicInfo(typeAndPid);
     }
 }

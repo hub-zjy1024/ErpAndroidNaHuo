@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/title_background">
+
+        <TextView
+            android:id="@+id/item_baoguan_tv_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/alertcolor_bg_whight"
+            android:text=""/>
+
+        <TextView
+            android:id="@+id/item_baoguan_tv_partno"
+            android:layout_width="@dimen/titlewith_partno"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/item_baoguan_dur_margin_index"
+            android:text="不1234723890749"/>
+
+        <TextView
+            android:id="@+id/item_baoguan_tv_counts"
+            android:layout_width="@dimen/titlewith_counts"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/item_baoguan_dur_margin"
+            android:text="1000"/>
+
+        <TextView
+            android:id="@+id/item_baoguan_tv_sigleprice"
+            android:layout_width="@dimen/titlewith_price"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/item_baoguan_dur_margin"
+            android:text="20.0000"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.b1b.js.erpandroid_nahuo.myview.CustMaterialEd
+            android:id="@+id/item_baoguan_ed_dollar"
+            android:layout_width="100dp"
+            style="@style/material_ed_yundan"
+            android:hint="美元单价"
+            android:inputType="numberDecimal"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/item_baoguan_tv_dollar_now"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+</LinearLayout>

@@ -16,6 +16,8 @@ import com.b1b.js.erpandroid_nahuo.entity.UploadPicInfo;
 import java.io.File;
 import java.util.List;
 
+import utils.image.MyImageUtls;
+
 /**
  Created by 张建宇 on 2017/2/22. */
 
@@ -66,7 +68,7 @@ public class UploadPicAdapter extends BaseAdapter {
         if (position < data.size()) {
             UploadPicInfo uploadPicInfo = data.get(position);
             File file = new File(uploadPicInfo.getPath());
-            Bitmap b = utils.MyImageUtls.getSmallBitmap(file.getAbsolutePath(), 200, 200);
+            Bitmap b = MyImageUtls.getSmallBitmap(file.getAbsolutePath(), 200, 200);
             mHolder.iv.setImageBitmap(b);
 //            Picasso.with(mContext).load(file).resize(200, 200).centerCrop().into(mHolder.iv);
             if (uploadPicInfo.getState().equals("1")) {

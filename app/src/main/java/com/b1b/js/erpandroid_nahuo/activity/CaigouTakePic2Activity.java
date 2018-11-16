@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.hardware.Camera;
@@ -24,6 +23,7 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
 import android.view.Surface;
@@ -34,13 +34,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.b1b.js.erpandroid_nahuo.R;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
 
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
@@ -48,20 +46,22 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
+import utils.CheckUtils;
 import utils.DialogUtils;
-import utils.FTPUtils;
-import utils.FtpManager;
-import utils.ImageWaterUtils;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
+import utils.image.ImageWaterUtils;
 import utils.MyFileUtils;
-import utils.MyImageUtls;
+import utils.image.MyImageUtls;
 import utils.MyToast;
-import utils.UploadUtils;
-import utils.WebserviceUtils;
+import utils.net.ftp.UploadUtils;
+import utils.wsdelegate.WebserviceUtils;
 import utils.camera.AutoFoucusMgr;
 
 public class CaigouTakePic2Activity extends AppCompatActivity implements View.OnClickListener {
@@ -90,6 +90,7 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
     private final static int PICUPLOAD_ERROR = 1;
     int cid;
     int did;
+    private TextView tvPid;
     private Context mContext = this;
     private Handler mHandler = new Handler() {
         @Override
@@ -100,7 +101,17 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                     btn_takepic.setEnabled(true);
                     toolbar.setVisibility(View.GONE);
                     break;
-                case PICUPLOAD_SUCCESS:
+                    case PICUPLOAD_SUCCESS:
+                    Object obj = msg.obj;
+                    final TextView textView = (TextView) obj;
+                    String nowTag = textView.getTag().toString();
+                    textView.setText("图片:" + nowTag + "上传完成 OK···");
+                    mHandler. postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            llResult.removeView(textView);
+                        }
+                    }, 2000);
                     MyToast.showToast(mContext, "后台剩余图片：" + MyApp.totoalTask.size());
                     break;
                 case FTP_CONNECT_FAIL:
@@ -123,6 +134,7 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
     private AlertDialog inputDialog;
     private HashMap<Integer, String> map = new HashMap<>();
     private AutoFoucusMgr auto;
+    private LinearLayout llResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,12 +147,14 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
         btn_takepic = (Button) findViewById(R.id.btn_takepic);
         btn_setting = (Button) findViewById(R.id.takepic_btn_setting);
         toolbar = (LinearLayout) findViewById(R.id.main_toolbar);
+        tvPid = (TextView) findViewById(R.id.activity_take_pic_tvpid);
         btn_setting.setOnClickListener(this);
         btn_takepic.setOnClickListener(this);
         btn_tryagain.setOnClickListener(this);
         btn_commit.setOnClickListener(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         builder.setTitle("请输入单据号");
+        llResult = (LinearLayout) findViewById(R.id.take_pic2_result_containner);
         View v = LayoutInflater.from(mContext).inflate(R.layout.dialog_inputpid, null);
         final EditText dialogPid = (EditText) v.findViewById(R.id.dialog_inputpid_ed);
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
@@ -160,6 +174,7 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
         builder.setView(v);
         inputDialog = builder.create();
         pid = getIntent().getStringExtra("pid");
+        tvPid.setText(pid);
         if (pid != null) {
             dialogPid.setText(pid);
         }
@@ -196,22 +211,8 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                     }
                     //设置旋转角度
                     camera.setDisplayOrientation(getPreviewDegree((Activity) mContext));
-                    //设置parameter注意要检查相机是否支持，通过parameters.getSupportXXX()
                     parameters = camera.getParameters();
                     String brand = Build.BRAND;
-//                    if (brand != null) {
-//                        if (brand.toUpperCase().equals("HONOR")) {
-//                            container.setOnClickListener(new View.OnClickListener() {
-//                                @Override
-//                                public void onClick(View v) {
-//                                    camera.autoFocus(null);
-//                                }
-//                            });
-//                        } else {
-//                            setAutoFoucs(parameters);
-//                        }
-//                    }
-                    //                    setPreViewSize(parameters);//默认为屏幕大小
                     sp = getSharedPreferences("cameraInfo", 0);
                     try {
                         // 设置用于显示拍照影像的SurfaceHolder对象
@@ -228,11 +229,16 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                             int height = sp.getInt("height", -1);
                             Log.e("zjy", "CaigouTakePic2Activity.java->surfaceCreated(): ==readCacheSize");
                             parameters.setPictureSize(width, height);
-                            camera.setParameters(parameters);
+                            try {
+                                camera.setParameters(parameters);
+                            } catch (RuntimeException e) {
+                                MyApp.myLogger.writeError(e, "TakePicActivity2-setDeFault-setParameters,setPicSize:"+width+"\tx"+height);                        e.printStackTrace();
+                            }
+                            camera.startPreview();
                         } else {
                             showSizeChoiceDialog(parameters);
                         }
-                        camera.startPreview();
+
                         isPreview = true;
                         container.setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -264,50 +270,6 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
         }
     }
 
-
-    /**
-     默认使用最大的预览尺寸，以便于获取最清晰的预览画面
-     @param parameters
-     */
-    private void setPreViewSize(Camera.Parameters parameters) {
-        List<Camera.Size> supportedPreviewSizes = parameters.getSupportedPreviewSizes();
-        Camera.Size firstSize = supportedPreviewSizes.get(0);
-        Camera.Size lastSize = supportedPreviewSizes.get(supportedPreviewSizes.size() - 1);
-        int firstWidth = firstSize.width;
-        int firstHeight = firstSize.height;
-        int lastWidth = lastSize.width;
-        int lastHeight = lastSize.height;
-        if (firstWidth > lastWidth) {
-            parameters.setPreviewSize(firstWidth, firstHeight);
-        } else {
-            parameters.setPreviewSize(lastWidth, lastHeight);
-        }
-    }
-
-    /**
-     如果相机支持设置自动聚焦
-     @param parameters
-     */
-    private void setAutoFoucs(Camera.Parameters parameters) {
-        List<String> supportedFocusModes = parameters.getSupportedFocusModes();
-        for (int i = 0; i < supportedFocusModes.size(); i++) {
-            if (supportedFocusModes.get(i).equals(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
-                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-                //如果支持自动聚焦，必须设定回调
-                camera.autoFocus(new Camera.AutoFocusCallback() {
-                    @Override
-                    public void onAutoFocus(boolean success, Camera camera) {
-                        if (success) {
-                            //聚焦成功记得取消，不然不会自动聚焦了
-                            camera.cancelAutoFocus();
-                        }
-                    }
-                });
-                break;
-            }
-        }
-    }
-
     /**
      弹出尺寸选择对话框
      防止照出的图片太大，内存溢出
@@ -316,14 +278,18 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
 
         picSizes = parameters.getSupportedPictureSizes();
         //剔除出尺寸太小的，和尺寸太大的，宽度（1280-2048)
+        String sizesStr = "";
         for (int i = picSizes.size() - 1; i >= 0; i--) {
             int width = picSizes.get(i).width;
+            int height = picSizes.get(i).height;
             Log.e("zjy", "CaigouTakePic2Activity.java->showProgressDialog(): size==" + picSizes.get(i).width + "\t" + picSizes.get(i)
                     .height);
+            sizesStr += "size w-h " + width + "x" + height + "\n";
             if (width < 1920 || width > 2592) {
                 picSizes.remove(i);
             }
         }
+        final String tempSize = sizesStr;
         if (picSizes.size() > 0) {
             String[] strs = new String[picSizes.size()];
             for (int i = 0; i < picSizes.size(); i++) {
@@ -347,7 +313,12 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                     int height = picSizes.get(itemPosition).height;
                     Log.e("zjy", "CaigouTakePic2Activity.java->selectSize: width==" + width + "\t" + height);
                     parameters.setPictureSize(width, height);
-                    camera.setParameters(parameters);
+                    try {
+                        camera.setParameters(parameters);
+                    } catch (RuntimeException e) {
+                        MyApp.myLogger.writeError(e, "TakePicActivity2-setDeFault-setParameters,size:"+tempSize);                        e.printStackTrace();
+                    }
+                    camera.startPreview();
                 }
             });
 
@@ -362,7 +333,12 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                     editor.putInt("height", height);
                     editor.apply();
                     parameters.setPictureSize(width, height);
-                    camera.setParameters(parameters);
+                    try {
+                        camera.setParameters(parameters);
+                    } catch (RuntimeException e) {
+                        MyApp.myLogger.writeError(e, "TakePicActivity2-setDeFault-setParameters,size:"+tempSize);                        e.printStackTrace();
+                    }
+                    camera.startPreview();
                 }
             });
             dialog.setCancelable(false);
@@ -381,7 +357,7 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
             if (mOrientationListener.canDetectOrientation()) {
                 mOrientationListener.enable();
             } else {
-                Log.e("zjy", "TakePicActivity->attachToSensor(): 获取相机方向失败==");
+                Log.e("zjy", "TakePicActivity2->attachToSensor(): 获取相机方向失败==");
                 mOrientationListener.disable();
                 rotation = 0;
             }
@@ -439,6 +415,7 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                             showSizeChoiceDialog(parameters);
                             toolbar.setVisibility(View.GONE);
                         }
+                        camera.stopPreview();
                     }
                 });
                 break;
@@ -458,8 +435,8 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                 if (photo == null || photo.isRecycled()) {
                     MyToast.showToast(mContext, "图片过大，请选择合适的尺寸");
                     btn_takepic.setEnabled(true);
-                    camera.startPreview();
                     toolbar.setVisibility(View.GONE);
+                    camera.startPreview();
                     showSizeChoiceDialog(parameters);
                     return;
                 }
@@ -491,8 +468,8 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                 try {
                     Bitmap waterBitmap = ImageWaterUtils.createWaterMaskRightBottom(mContext, photo, bitmap,
                             0, 0);
-                    textBitmap = ImageWaterUtils.drawTextToRightTop(mContext, waterBitmap, pid, (int) (photo
-                            .getWidth() * 0.015), Color.RED, 20, 20);
+                    textBitmap = ImageWaterUtils.drawTextToRightTopByDef(mContext, waterBitmap, pid, (int) (photo
+                            .getWidth() * 0.015));
                     if (photo != null && !photo.isRecycled()) {
                         photo.recycle();
                     }
@@ -505,12 +482,24 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                     showSizeChoiceDialog(parameters);
                     return;
                 }
+                Date date = new Date();
+                int minute = date.getMinutes();
+                int ss = date.getSeconds();
+                String upTime = minute + ":" + ss;
+                final TextView textView = new TextView(mContext);
+                textView.setBackgroundColor(getResources().getColor(R.color.color_tv_result_transparent));
+                textView.setText("图片:" + upTime + "正在上传");
+                textView.setTextColor(getResources().getColor(R.color.colorAccent));
+                float fontSize = 18;
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
+                textView.setTag(upTime);
+                llResult.addView(textView);
                 Thread tempThread = new Thread() {
                     @Override
                     public void run() {
                         String remoteName = UploadUtils.createSCCGRemoteName(pid);
                         String notifyName = remoteName;
-                        String localPath = UploadUtils.createSCCGRemoteName(pid);
+                        String localPath = remoteName;
                         final File upFile = new File(sFile, "dyj_img/" + localPath + ".jpg");
                         File dyjImgDir = upFile.getParentFile();
                         if (!dyjImgDir.exists()) {
@@ -526,7 +515,7 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                             fio.close();
                             String insertPath;
                             Intent mIntent = new Intent(mContext,
-                                    ObtainPicFromPhone.class);
+                                    ObtainPicFromPhone2.class);
                             mIntent.putExtra("failPid", pid);
                             mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             mIntent.putExtra("failPath", upFile.getAbsolutePath());
@@ -538,6 +527,7 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                             pIntent = null;
                             boolean isStop = false;
                             int counts = 0;
+                            final String tag = textView.getTag().toString();
                             while (!isStop) {
                                 FileInputStream localInputStream = null;
                                 try {
@@ -547,17 +537,12 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                                     remoteName = UploadUtils.createSCCGRemoteName(pid);
                                     //                                    remoteName = "SCCG_a_" + pid + "_" + String.valueOf
                                     // (Math.random() * 1000);
-                                    if ("101".equals(MyApp.id)) {
+                                    if (CheckUtils.isAdmin()) {
                                         remotePath = UploadUtils.CG_DIR + remoteName + ".jpg";
                                     } else {
                                         remotePath = UploadUtils.getCaigouRemoteDir(remoteName + ".jpg");
                                     }
-                                    FTPUtils ftpUtil = new FTPUtils(FtpManager.mainAddress, FTPUtils.DEFAULT_PORT, FtpManager
-                                            .mainName,
-                                            FtpManager.mainPwd);
-                                    //                                        url= "192.168.10.65";
-                                    //                                        ftpUtil=  new ftpUtil(url, 21, "zjy",
-                                    // "123456");
+                                    FTPUtils ftpUtil = new FTPUtils(FtpManager.mainAddress,FtpManager.mainName,FtpManager.mainPwd);
                                     ftpUtil.login();
                                     insertPath = UploadUtils.createInsertPath(FtpManager.DB_ADDRESS,
                                             remotePath);
@@ -573,7 +558,7 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                                                         (WebserviceUtils.WebServiceCheckWord, cid, did,
                                                                 Integer.parseInt(MyApp
                                                                         .id), pid, remoteName + ".jpg", insertPath, "SCCG");
-                                                Log.e("zjy", "TakePic2Activit.java->setInsertPicInfo == " + res);
+                                                Log.e("zjy", "TakePic2Activit.java->setChukuPicInfo == " + res);
                                                 //                   String res = "操作成功";
                                                 if (res.equals("操作成功")) {
                                                     isStop = true;
@@ -585,7 +570,7 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                                                             ("background upload caigou success：" + pid + "\t" +
                                                                     remoteName);
                                                     mHandler.obtainMessage
-                                                            (PICUPLOAD_SUCCESS).sendToTarget();
+                                                            (PICUPLOAD_SUCCESS, textView).sendToTarget();
                                                     break;
                                                 } else {
                                                     changeNotificationMsg
@@ -633,6 +618,15 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
+                                if (isStop) {
+                                    break;
+                                }
+                                mHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        textView.setText("图片:" + tag + "重新上传中....");
+                                    }
+                                });
                                 counts++;
                             }
                         } catch (FileNotFoundException e) {
@@ -666,6 +660,50 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
         }
     }
 
+    /**
+     默认使用最大的预览尺寸，以便于获取最清晰的预览画面(测试发现有些不兼容)
+     @param parameters
+     */
+    public static Point getSuitablePreviewSize(Camera.Parameters parameters, int screenW, int screenH) {
+        Camera.Size defSize = parameters.getPreviewSize();
+        if (defSize.width == screenH && defSize.height == screenW) {
+            return null;
+        }
+        List<Camera.Size> supportedPreviewSizes = parameters.getSupportedPreviewSizes();
+        final double aspect = 0.2;
+        double targetRatio = (double) screenH / screenW;
+        if (supportedPreviewSizes == null)
+            return null;
+        Camera.Size optimalSize = null;
+        int minDiff = Integer.MAX_VALUE;
+        int targetHeight = screenW;
+        List<Camera.Size> oList = new ArrayList<>();
+        String s = "";
+        //筛选出比例最合适的size
+        for (Camera.Size size : supportedPreviewSizes) {
+            double ratio = (double) size.width / size.height;
+            double rate = Math.abs(Math.abs(ratio - targetRatio));
+            s += rate + "w-h" + size.width+"\t" + size.height + "\n";
+            if (rate < aspect) {
+                if (size.width == screenH && size.height == targetHeight) {
+                    return new Point(size.width, size.height);
+                }
+                oList.add(size);
+            }
+        }
+        if (oList.size() == 0) {
+            // 没有满足的比例，直接找到高度最接近的
+            oList = supportedPreviewSizes;
+        }
+        //筛选出高度最相近
+        for (Camera.Size size : oList) {
+            if (Math.abs(size.height - targetHeight) < minDiff) {
+                minDiff = Math.abs(size.height - targetHeight);
+                optimalSize = size;
+            }
+        }
+        return new Point(optimalSize.width, optimalSize.height);
+    }
 
     private void changeNotificationMsg(NotificationCompat.Builder builder, int finalId, String msg, int progress, PendingIntent
             pIntent) {
@@ -723,31 +761,6 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
     //name="cid" type="int"   分公司id
     //name="did" type="int"    部门id
     //name="uid" type="int"   用户id
-
-    /**
-     使用同步代码，涉及数据库操作，多线程中有线程安全。
-     */
-    public String setSSCGPicInfo(String checkWord, int cid, int did, int uid, String pid, String fileName, String
-            filePath,
-                                 String stypeID) throws IOException, XmlPullParserException {
-        String str = "";
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("checkWord", checkWord);
-        map.put("cid", cid);
-        map.put("did", did);
-        map.put("uid", uid);
-        map.put("pid", pid);
-        map.put("filename", fileName);
-        map.put("filepath", filePath);
-        map.put("stypeID", stypeID);//标记，固定为"CKTZ"
-        SoapObject request = WebserviceUtils.getRequest(map, "InsertSSCGPicInfo");
-        synchronized (obj) {
-            SoapPrimitive response = WebserviceUtils.getSoapPrimitiveResponse(request, SoapEnvelope.VER11, WebserviceUtils
-                    .MartStock);
-            str = response.toString();
-        }
-        return str;
-    }
 
     @Override
     protected void onPause() {

@@ -6,23 +6,17 @@ import android.content.SharedPreferences;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
+import utils.net.ftp.UploadUtils;
+import utils.wsdelegate.WebserviceUtils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
-
-import utils.FTPUtils;
-import utils.FtpManager;
-import utils.UploadUtils;
-import utils.WebserviceUtils;
 
 public class LogUploadService extends Service {
     //配置url、log文件名称、log保存地址、ftp用户名密码
@@ -130,8 +124,8 @@ public class LogUploadService extends Service {
     }
 
     private boolean upload(File log, String remotePath) {
-        FTPUtils utils = new FTPUtils(FtpManager.mainAddress,FTPUtils.DEFAULT_PORT, FTPUtils.mainName,
-                FTPUtils.mainPwd);
+        FTPUtils utils = new FTPUtils(FtpManager.mainAddress, FtpManager.mainName,
+                FtpManager.mainPwd);
         boolean upOK = false;
         FileInputStream fis = null;
         try {

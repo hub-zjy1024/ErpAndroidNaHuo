@@ -21,16 +21,16 @@ import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 
-import utils.FTPUtils;
-import utils.FtpManager;
-import utils.UploadUtils;
-import utils.WebserviceUtils;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
+import utils.net.ftp.UploadUtils;
+import utils.wsdelegate.WebserviceUtils;
 
 public class LogUploadService2 extends Service {
     //配置url、log文件名称、log保存地址、ftp用户名密码
     final String targeUrl = WebserviceUtils.ROOT_URL + "DownLoad/dyj_nahuo/logcheck" +
             ".txt";
-    final String savedDir = "/ZJy/log_nahuo/" + UploadUtils.getCurrentYearAndMonth
+    final String savedDir = "/ZJy/log_nahuo/" + UploadUtils.getCurrentYearAndMonth2
             () + "/";
     final String logFileName = "dyj_nahuo_log.txt";
     private int startTime = 9;
@@ -87,7 +87,7 @@ public class LogUploadService2 extends Service {
                 fileSize = sp.getLong("logsize", 0);
                 final String current = UploadUtils.getDD(new Date());
                 if (date.equals("")) {
-                    remoteName = current;
+                    remoteName =getRemoteName(current);
                 }
                 if (!date.equals(current)) {
                     fileSize = 0;
@@ -111,7 +111,7 @@ public class LogUploadService2 extends Service {
     }
 
     private boolean upload(File log, String remotePath) {
-        FTPUtils utils = new FTPUtils(FtpManager.mainAddress, 21, FtpManager.mainName, FtpManager.mainPwd);
+        FTPUtils utils = new FTPUtils(FtpManager.mainAddress, FtpManager.mainName, FtpManager.mainPwd);
         boolean upOK = false;
         FileInputStream fis = null;
         try {

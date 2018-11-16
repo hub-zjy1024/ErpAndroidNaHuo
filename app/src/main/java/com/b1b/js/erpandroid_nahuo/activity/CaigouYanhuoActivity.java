@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -21,23 +20,18 @@ import com.b1b.js.erpandroid_nahuo.entity.YanhuoInfo;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import utils.DialogUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
-import utils.WebserviceUtils;
-import zxing.activity.CaptureActivity;
+import utils.wsdelegate.MartService;
 
-public class CaigouYanhuoActivity extends AppCompatActivity {
+public class CaigouYanhuoActivity extends BaseScanActivity {
 
     private Handler mHandler = new Handler();
     private ListView lv;
@@ -86,8 +80,6 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
                 infoDialog.setTitle("详情："+item.getPid());
                 infoDialog.setMessage(item.toString());
                 DialogUtils.safeShowDialog(CaigouYanhuoActivity.this, infoDialog);
-//                TextView tv = (TextView) view.findViewById(R.id.activity_caigouyanhuo_item_tv);
-//                tv.setText(item.toString());
                 return true;
             }
         });
@@ -98,9 +90,7 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, CaptureActivity
-                        .class);
-                startActivityForResult(intent, 300);
+                startScanActivity();
             }
         });
         btnSearch.setOnClickListener(new View.OnClickListener() {
@@ -118,6 +108,19 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void resultBack(String result) {
+        edpid.setText(result);
+        String pid =result;
+        String partno = edpartno.getText().toString();
+        SoftKeyboardUtils.closeInputMethod(edpid, mContext);
+        if (yanhuoInfos.size() > 0) {
+            yanhuoInfos.clear();
+            mAdapter.notifyDataSetChanged();
+        }
+        getDate(pid, partno);
+    }
+
     public void getDate(final String pid, final String partno) {
         pd.show();
         new Thread() {
@@ -125,11 +128,7 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
             public void run() {
                 try {
                     String result = getResponse(partno, pid);
-//                    {
-//                        "PID":"830257", "采购地":"深圳市场", "制单日期":"2017/8/25 9:55:15", "公司":"美商利华分公司", "部门":
-//                        "北京美商利华国际", "业务员":"谭晓燕", "单据状态":"等待验货", "收款":"现款现货", "客户开票":"普通发票", "供应商开票":
-//                        "普通发票", "供应商":"深圳市同亨微科技有限公司", "采购员":"郭峰建", "询价员":"郭峰建"
-//                    }
+                    Log.e("zjy", "CaigouYanhuoActivity->run(): CaigouYanhuoInfo==" + result);
                     JSONObject object = new JSONObject(result);
                     JSONArray jArray = object.getJSONArray("表");
                     for(int i=0;i<jArray.length();i++) {
@@ -153,9 +152,10 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
                                 askPriceBy);
                         if (jArray.length() == 1) {
                             String detailInfo = YanhuoCheckActivity.getDetailInfo("", pid);
+                            Log.e("zjy", "CaigouYanhuoActivity->run(): DetailInfo==" + detailInfo);
                             try {
                                 JSONObject dObje = new JSONObject(detailInfo);
-                                String buider = new String();
+                                String buider = "";
                                 JSONArray dArray = dObje.getJSONArray("表");
                                 for (int j = 0; j < dArray.length(); j++) {
                                     JSONObject tDobj = dArray.getJSONObject(i);
@@ -208,16 +208,11 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
     ;
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 300 && resultCode == RESULT_OK) {
-            final String pid = data.getStringExtra("result");
+    public void getCameraScanResult(String result, int code) {
+        super.getCameraScanResult(result, code);
+        if (code == REQ_CODE) {
+            final String pid = result;
             edpid.setText(pid);
-            if (yanhuoInfos.size() > 0) {
-                yanhuoInfos.clear();
-                mAdapter.notifyDataSetChanged();
-            }
-            getDate(pid, "");
         }
     }
 
@@ -239,16 +234,6 @@ public class CaigouYanhuoActivity extends AppCompatActivity {
 
     public static String getResponse(String partno, String pid) throws IOException,
             XmlPullParserException {
-        //        GetSSCGInfoByDDYH
-        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        map.put("partno", partno);
-        map.put("pid", pid);
-        SoapObject req = WebserviceUtils.getRequest(map, "GetSSCGInfoByDDYH");
-        SoapPrimitive obj = WebserviceUtils.getSoapPrimitiveResponse(req, SoapEnvelope
-                        .VER11,
-                WebserviceUtils.MartService);
-        Log.e("zjy", "CaigouYanhuoActivity->getResponse(): response==" + obj
-                .toString());
-        return obj.toString();
+        return MartService.GetSSCGInfoByDDYH(partno, pid);
     }
 }
