@@ -18,6 +18,7 @@ import android.widget.EditText;
 import android.widget.GridView;
 
 import com.b1b.js.erpandroid_nahuo.R;
+import com.b1b.js.erpandroid_nahuo.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_nahuo.adapter.UploadPicAdapter;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
 import com.b1b.js.erpandroid_nahuo.entity.UploadPicInfo;

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ScrollViewHasMaxHeight">
+        <attr name="mh_height" format="dimension"></attr>
+    </declare-styleable>
+    <declare-styleable name="b1b.kf_style">
+        <attr name="kf_style" format="reference"></attr>
+    </declare-styleable>
+    <declare-styleable name="b1b.kf_style_detail">
+        <attr name="kf_light_normal" format="color"></attr>
+    </declare-styleable>
+    <declare-styleable name="b1b.recycleview.menu">
+        <attr name="recycleviewStyle" format="reference"></attr>
+        <attr name="btn_color_nomarl" format="color"></attr>
+    </declare-styleable>
+  <!--  <declare-styleable name="MaxHeightListView">
+        <attr name="mhLv_height" format="dimension"></attr>
+    </declare-styleable>-->
+</resources>

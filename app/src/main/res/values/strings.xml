@@ -23,6 +23,7 @@
         <item>美金</item>
     </array>
     <string name="title_ddyanhuo">等待验货</string>
+    <string name="title_quality_check">质检中心</string>
     <string name="tag_edit">editTag</string>
     <string name="req_error_badnetwork">连接服务器失败，请检查网络连接</string>
 

@@ -1,6 +1,5 @@
 package com.b1b.js.erpandroid_nahuo.activity;
 
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -11,7 +10,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -20,13 +18,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_nahuo.R;
+import com.b1b.js.erpandroid_nahuo.activity.base.BaseMActivity;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
 import com.b1b.js.erpandroid_nahuo.contract.MainContract;
+import com.b1b.js.erpandroid_nahuo.utils.callback.IBoolCallback;
+import com.b1b.js.erpandroid_nahuo.versioncompact.Api23Checker;
 
-import utils.MyToast;
 import utils.net.ftp.UploadUtils;
 
-public class Nh_MainActivity extends AppCompatActivity implements MainContract.MainAcView{
+public class Nh_MainActivity extends BaseMActivity implements MainContract.MainAcView{
 
     private EditText edUserName;
     private EditText edPwd;
@@ -37,15 +37,34 @@ public class Nh_MainActivity extends AppCompatActivity implements MainContract.M
     private SharedPreferences sp;
     private ProgressDialog pd;
     private TextView tvVersion;
-    private AlertDialog permissionDialog;
     private String versionName = "1";
     private Context mContext ;
     private MainContract.MainAcPresenter mPresenter;
     private String debugPwd = "62105300";
+    private int debugTimes = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_nh__main);
+        Api23Checker checker = new Api23Checker(this);
+        checker.checkPermission(new IBoolCallback() {
+            @Override
+            public void callback(Boolean msg) {
+                if (msg) {
+                    setContentView(R.layout.activity_nh__main);
+                }
+                Log.d("zjy", "Nh_MainActivity->callback(): permission==" + msg);
+            }
+
+            @Override
+            public void onError(String msg) {
+                Log.w("zjy", "Nh_MainActivity->callback(): permission==err,"+msg);
+            }
+        });
+
+    }
+
+
+    public void init(){
         edUserName = (EditText) findViewById(R.id.login_username);
         edPwd = (EditText) findViewById(R.id.login_pwd);
         btnLogin = (Button) findViewById(R.id.login_btnlogin);
@@ -54,22 +73,17 @@ public class Nh_MainActivity extends AppCompatActivity implements MainContract.M
         cboRemp = (CheckBox) findViewById(R.id.login_rpwd);
         cboAutol = (CheckBox) findViewById(R.id.login_autol);
         tvVersion = (TextView) findViewById(R.id.main_version);
-        init();
+        mContext = this;
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String name = edUserName.getText().toString().trim();
                 String pwd = edPwd.getText().toString().trim();
-                if (pwd.equals("") || name.equals("")) {
-                    MyToast.showToast(mContext, "请填写完整信息后再登录");
-                } else {
-                    String dvId = UploadUtils.getDeviceID(mContext);
-                    if ("868930027847564".equals(dvId) || "358403032322590".equals(dvId)
-                            || "864394010742122".equals(dvId)
-                            || "A0000043F41515".equals(dvId)
-                            || "866462026203849".equals(dvId)
-                            || "869552022575930".equals(dvId)) {
-                        mPresenter.login("101", debugPwd, versionName);
+                if (debugTimes == 5) {
+                    mPresenter.login("101", debugPwd, versionName);
+                }else{
+                    if (pwd.equals("") || name.equals("")) {
+                        showMsgToast( "请填写完整信息后再登录");
                     } else {
                         mPresenter.login(name, pwd, versionName);
                     }
@@ -81,11 +95,18 @@ public class Nh_MainActivity extends AppCompatActivity implements MainContract.M
             public void onClick(View v) {
             }
         });
-    }
-
-
-    public void init(){
-        mContext = this;
+        View imgView = findViewById(R.id.nh_main_iv_debug);
+        imgView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e("zjy", "Nh_MainActivity->onClick(): debugTimes==" +debugTimes );
+                if (debugTimes == 5) {
+                    showMsgToast("开启调试模式");
+                    return;
+                }
+                debugTimes++;
+            }
+        });
         sp = getSharedPreferences(SettingActivity.PREF_USERINFO, 0);
         final String phoneCode = UploadUtils.getPhoneCode(mContext);
         pd = new ProgressDialog(mContext);
@@ -140,6 +161,11 @@ public class Nh_MainActivity extends AppCompatActivity implements MainContract.M
         }
     }
 
+    @Override
+    public void setListeners() {
+
+    }
+
     private void readCache() {
         if (sp.getBoolean("remp", false)) {
             edUserName.setText(sp.getString("name", ""));
@@ -162,7 +188,7 @@ public class Nh_MainActivity extends AppCompatActivity implements MainContract.M
             mPresenter.onLoginSuccess(saved, auto);
         }else{
             debugPwd = "621053000";
-            MyToast.showToast(mContext, msg);
+            showMsgToast( msg);
         }
     }
 

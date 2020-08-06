@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -20,6 +19,7 @@ import android.widget.EditText;
 import android.widget.GridView;
 
 import com.b1b.js.erpandroid_nahuo.R;
+import com.b1b.js.erpandroid_nahuo.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_nahuo.adapter.UploadPicAdapter;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
 import com.b1b.js.erpandroid_nahuo.entity.UploadPicInfo;
@@ -37,17 +37,17 @@ import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
 import utils.CheckUtils;
-import utils.net.ftp.FTPUtils;
-import utils.net.ftp.FtpManager;
+import utils.MyToast;
 import utils.image.ImageWaterUtils;
 import utils.image.MyImageUtls;
-import utils.MyToast;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
 import utils.net.ftp.UploadUtils;
 import utils.wsdelegate.WebserviceUtils;
 import zhy.imageloader.MyAdapter;
 import zhy.imageloader.PickPicActivity;
 
-public class ObtainPicFromPhone2 extends AppCompatActivity implements View.OnClickListener {
+public class ObtainPicFromPhone2 extends SavedLoginInfoActivity implements View.OnClickListener {
 
     private Button btn_commit;
     private Button btn_commitOrigin;

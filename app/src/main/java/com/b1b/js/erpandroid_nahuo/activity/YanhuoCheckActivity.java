@@ -1,6 +1,5 @@
 package com.b1b.js.erpandroid_nahuo.activity;
 
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,9 +17,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_nahuo.R;
+import com.b1b.js.erpandroid_nahuo.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_nahuo.adapter.YHDetailAdapter2;
 import com.b1b.js.erpandroid_nahuo.adapter.YhDetailAdapter;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
+import com.b1b.js.erpandroid_nahuo.contract.YanhuoPicMgr;
 import com.b1b.js.erpandroid_nahuo.entity.BaoguanDetail;
 import com.b1b.js.erpandroid_nahuo.entity.Baseinfo;
 import com.b1b.js.erpandroid_nahuo.utils.DelayClickControler;
@@ -41,6 +42,10 @@ import utils.SoftKeyboardUtils;
 import utils.net.ftp.UploadUtils;
 import utils.wsdelegate.MartService;
 
+/**
+ * 验货页
+ * {@link MenuActivity#itemYanhuo}
+ */
 public class YanhuoCheckActivity extends SavedLoginInfoActivity {
 
     private Handler mHandler = new Handler();
@@ -287,42 +292,45 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
     }
 
     public void takePic(final String pid) {
-        AlertDialog.Builder builder = new AlertDialog.Builder
-                (YanhuoCheckActivity.this);
-        builder.setTitle("图片上传方式：" + pid);
-        builder.setItems(new String[]{"拍照", "从手机选择", "连拍"}, new DialogInterface
-                .OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Intent intent;
-                switch (which) {
-                    case 0:
-                        intent = new Intent(YanhuoCheckActivity.this,
-                                TakePicActivity.class);
-                        intent.putExtra("pid", pid);
-                        intent.putExtra("flag", "caigou");
-                        startActivity(intent);
-                        break;
-                    case 1:
-                        intent = new Intent(YanhuoCheckActivity.this,
-                                ObtainPicFromPhone.class);
-//                                ObtainPicFromPhone2.class);
-                        intent.putExtra("pid", pid);
-                        intent.putExtra("flag", "caigou");
-                        startActivity(intent);
-                        break;
-                    case 2:
-                        intent = new Intent(YanhuoCheckActivity.this,
-                                //                                CaigouTakePic2Activity.class);
-                                YanhuoTakepic2.class);
-                        intent.putExtra("pid", pid);
-                        intent.putExtra("flag", "caigou");
-                        startActivity(intent);
-                        break;
-                }
-            }
-        });
-        builder.create().show();
+//        AlertDialog.Builder builder = new AlertDialog.Builder
+        //                (YanhuoCheckActivity.this);
+        //        builder.setTitle("图片上传方式：" + pid);
+        //        builder.setItems(new String[]{"拍照", "从手机选择", "连拍"}, new DialogInterface
+        //                .OnClickListener() {
+        //            @Override
+        //            public void onClick(DialogInterface dialog, int which) {
+        //                Intent intent;
+        //                switch (which) {
+        //                    case 0:
+        //                        intent = new Intent(mContext,
+        //                                YhTakepicActivity.class);
+        //                        intent.putExtra("pid", pid);
+        //                        intent.putExtra("flag", "caigou");
+        //                        startActivity(intent);
+        //                        break;
+        //                    case 1:
+        //                        intent = new Intent(mContext,
+        //                                ObtainPicFromPhone.class);
+        ////                                ObtainPicFromPhone2.class);
+        //                        intent.putExtra("pid", pid);
+        //                        intent.putExtra("flag", "caigou");
+        //                        startActivity(intent);
+        //                        break;
+        //                    case 2:
+        //                        intent = new Intent(mContext,
+        //                                //                                CaigouTakePic2Activity.class);
+        //                                YanhuoTakepic2.class);
+        //                        intent.putExtra("pid", pid);
+        //                        intent.putExtra("flag", "caigou");
+        //                        startActivity(intent);
+        //                        break;
+        //                }
+        //            }
+        //        });
+        //        builder.create().show();
+        YanhuoPicMgr mgr = new YanhuoPicMgr(mContext);
+        mgr.takePic(pid);
+
     }
 
     public void yanhuo(final String pid, final String state, final String note) {
@@ -338,7 +346,7 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                DialogUtils.getSpAlert(YanhuoCheckActivity.this,
+                                DialogUtils.getSpAlert(mContext,
                                         "验货完成，是否拍照", "提示", new DialogInterface
                                                 .OnClickListener() {
                                             @Override
@@ -357,7 +365,7 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                DialogUtils.getSpAlert(YanhuoCheckActivity.this,
+                                DialogUtils.getSpAlert(mContext,
                                         "验货失败！！！," + msg, "提示").show();
                                 DialogUtils.dismissDialog(pd);
                             }
@@ -367,7 +375,7 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            DialogUtils.getSpAlert(YanhuoCheckActivity.this,
+                            DialogUtils.getSpAlert(mContext,
                                     "连接服务器失败！！！", "提示").show();
                             DialogUtils.dismissDialog(pd);
                         }
@@ -421,7 +429,7 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                DialogUtils.getSpAlert(YanhuoCheckActivity.this,
+                                DialogUtils.getSpAlert(mContext,
                                         "验货完成，是否拍照", "提示", new DialogInterface
                                                 .OnClickListener() {
                                             @Override
@@ -438,7 +446,7 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                DialogUtils.getSpAlert(YanhuoCheckActivity.this,
+                                DialogUtils.getSpAlert(mContext,
                                         "验货失败，" + finalMsg, "提示").show();
                                 DialogUtils.dismissDialog(pd);
                             }
@@ -449,7 +457,7 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
                         @Override
                         public void run() {
                             pd.cancel();
-                            DialogUtils.getSpAlert(YanhuoCheckActivity.this,
+                            DialogUtils.getSpAlert(mContext,
                                     "验货失败，" + e.getMessage(), "提示").show();
                         }
                     });
@@ -460,7 +468,7 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
                         @Override
                         public void run() {
                             pd.cancel();
-                            DialogUtils.getSpAlert(YanhuoCheckActivity.this,
+                            DialogUtils.getSpAlert(mContext,
                                     "验货失败，" + e.getMessage(), "提示").show();
                         }
                     });
@@ -523,9 +531,7 @@ public class YanhuoCheckActivity extends SavedLoginInfoActivity {
         };
         try {
             String soapRes = MartService.GetMyProviderInfoByName("", Integer.parseInt(loginID), did, providerName);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (XmlPullParserException e) {
+        } catch (IOException|XmlPullParserException e) {
             e.printStackTrace();
         }
 

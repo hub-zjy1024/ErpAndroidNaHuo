@@ -7,17 +7,17 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PersistableBundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.WindowManager;
 
 import com.android.dev.BarcodeAPI;
+import com.b1b.js.erpandroid_nahuo.activity.base.ToolbarActivity;
 import com.b1b.js.erpandroid_nahuo.handler.NoLeakHandler;
 
 import zxing.activity.CaptureActivity;
 
-public abstract class BaseScanActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback {
+public abstract class BaseScanActivity extends ToolbarActivity implements NoLeakHandler.NoLeakCallback {
     private Handler scanHandler = new NoLeakHandler(this);
 
     @Override

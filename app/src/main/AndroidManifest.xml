@@ -7,10 +7,12 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
     <uses-permission android:name="android.permission.FLASHLIGHT"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
             android:name=".application.MyApp"
@@ -31,7 +33,15 @@
         <service
                 android:name=".services.NahuoPushService"
                 android:enabled="true"/>
-
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/ex_files" />
+        </provider>
         <activity android:name=".activity.NahuoListAcitivity"/>
         <activity android:name=".activity.DialogAcitity"/>
         <activity android:name=".activity.SettingActivity"/>
@@ -55,6 +65,8 @@
         <activity android:name=".activity.CaigouBaoguanActivity">
         </activity>
         <activity android:name=".activity.YanhuoTakepic2"/>
+        <activity android:name=".activity.YhTakepicActivity"/>
+        <activity android:name=".activity.YhTakepic2Activity" />
     </application>
 
 </manifest>

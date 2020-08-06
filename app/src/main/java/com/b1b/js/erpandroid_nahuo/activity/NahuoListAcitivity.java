@@ -1,16 +1,13 @@
 package com.b1b.js.erpandroid_nahuo.activity;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -21,9 +18,11 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.b1b.js.erpandroid_nahuo.R;
+import com.b1b.js.erpandroid_nahuo.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_nahuo.adapter.NahuoAdapter2;
 import com.b1b.js.erpandroid_nahuo.adapter.ViewHolder;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
+import com.b1b.js.erpandroid_nahuo.contract.YanhuoPicMgr;
 import com.b1b.js.erpandroid_nahuo.entity.NahuoInfoN;
 
 import org.json.JSONArray;
@@ -40,7 +39,7 @@ import utils.DialogUtils;
 import utils.MyToast;
 import utils.wsdelegate.WebserviceUtils;
 
-public class NahuoListAcitivity extends AppCompatActivity {
+public class NahuoListAcitivity extends SavedLoginInfoActivity {
 
     private NahuoAdapter2 nhAdapter;
     private List<NahuoInfoN> mLists;
@@ -143,7 +142,7 @@ public class NahuoListAcitivity extends AppCompatActivity {
             @Override
             public void onClick(ViewHolder helper, NahuoInfoN item) {
                 final String pid = item.getPid();
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                /*AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 builder.setTitle("上传图片：" + pid);
                 builder.setItems(new String[]{"拍照", "从手机选择", "连拍"}, new DialogInterface.OnClickListener() {
                     @Override
@@ -151,12 +150,12 @@ public class NahuoListAcitivity extends AppCompatActivity {
                         Intent intent = new Intent();
                         switch (which) {
                             case 0:
-                                intent = new Intent(mContext, TakePicActivity
+                                intent = new Intent(mContext, YhTakepicActivity
                                         .class);
                                 intent.putExtra("pid", pid);
                                 intent.putExtra("flag", "caigou");
                                 startActivity(intent);
-                                Log.e("zjy", "NahuoListAcitivity->onClick(): ==" + getLocalClassName());
+                                Log.e("zjy", "NahuoListAcitivity->onClick(): ==" + getClass());
                                 MyApp.myLogger.writeInfo(getLocalClassName() + "checkpage-take");
                                 break;
                             case 1:
@@ -176,7 +175,9 @@ public class NahuoListAcitivity extends AppCompatActivity {
                         }
                     }
                 });
-                builder.create().show();
+                builder.create().show();*/
+                YanhuoPicMgr mPicManager = new YanhuoPicMgr(mContext);
+                mPicManager.takePic(pid);
             }
         });
         lv.setAdapter(nhAdapter);

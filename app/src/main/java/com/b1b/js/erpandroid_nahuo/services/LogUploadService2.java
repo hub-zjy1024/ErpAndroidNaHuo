@@ -111,7 +111,7 @@ public class LogUploadService2 extends Service {
     }
 
     private boolean upload(File log, String remotePath) {
-        FTPUtils utils = new FTPUtils(FtpManager.mainAddress, FtpManager.mainName, FtpManager.mainPwd);
+        FTPUtils utils = new FTPUtils(FtpManager.CommonHost, FtpManager.mainName, FtpManager.mainPwd);
         boolean upOK = false;
         FileInputStream fis = null;
         try {

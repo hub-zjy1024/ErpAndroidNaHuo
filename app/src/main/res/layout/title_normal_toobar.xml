@@ -7,6 +7,5 @@
                                    app:titleTextColor="@color/color_white"
                                    app:subtitleTextColor="@color/color_tb_subtitle"
                                    app:title="这是菜单"
-                                   app:subtitle="这是菜单2"
                                    android:background="@color/title_background">
 </android.support.v7.widget.Toolbar>

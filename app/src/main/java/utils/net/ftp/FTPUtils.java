@@ -34,7 +34,7 @@ public class FTPUtils {
     public static final String DB_HOST = "172.16.6.22";
 //    public static final String mainAddress = "172.16.6.22";
 //    public static final int DEFAULT_PORT = 21;
-    public static final String mainAddress = "210.51.190.36";
+    public static final String mainAddress = FtpManager.CommonHost;
     public static final int DEFAULT_PORT = 7521;
     public static final String mainName = "NEW_DYJ";
     public static final String mainPwd = "GY8Fy2Gx";
@@ -134,7 +134,7 @@ public class FTPUtils {
      @throws IOException
      */
     public synchronized void login() throws IOException {
-        login(15);
+        login(10);
     }
 
     /**

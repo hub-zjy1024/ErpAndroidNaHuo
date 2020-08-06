@@ -25,22 +25,21 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import utils.CheckUtils;
+import utils.MyToast;
 import utils.net.ftp.FTPUtils;
 import utils.net.ftp.FtpManager;
-import utils.MyToast;
 import utils.net.ftp.UploadUtils;
 import utils.wsdelegate.WebserviceUtils;
 
 /**
  Created by 张建宇 on 2018/9/5. */
 public class YanhuoTakepic2 extends TakePicActivity {
-    private NoLeakHandler handler2 = new NoLeakHandler(this);
-    private ViewGroup llResult;
-    private final static int FTP_CONNECT_FAIL = 3;
-    private final static int ERROR_NO_SD = 4;
-    private static final int PICCREATE_ERROR = 5;
-    private Executor cachePool = Executors.newCachedThreadPool();
-
+    protected NoLeakHandler handler2 = new NoLeakHandler(this);
+    protected ViewGroup llResult;
+    protected final static int FTP_CONNECT_FAIL = 3;
+    protected final static int ERROR_NO_SD = 4;
+    protected static final int PICCREATE_ERROR = 5;
+    protected Executor cachePool = Executors.newCachedThreadPool();
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {

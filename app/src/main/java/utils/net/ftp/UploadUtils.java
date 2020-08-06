@@ -1,12 +1,18 @@
 package utils.net.ftp;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
+import com.b1b.js.erpandroid_nahuo.application.MyApp;
+
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  Created by 张建宇 on 2017/2/21.
@@ -94,14 +100,127 @@ public class UploadUtils {
         builder.append("_and_" + System.currentTimeMillis());
         return builder.toString();
     }
+    @SuppressLint("MissingPermission")
     public static String getDeviceID(Context mContext) {
         TelephonyManager tm = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
-        return tm.getDeviceId();
+        String devId = "";
+        try {
+            devId = tm.getDeviceId();
+            Log.i("zjy", "UploadUtils->getDeviceID(): getDeviceId==" + devId);
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                String imei = tm.getImei();
+                String meid = tm.getMeid();
+                Log.i("zjy", "UploadUtils->getDeviceID(): imei==" + imei + "\tmeid=" + meid);
+            }
+            String serial = null;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                serial = android.os.Build.getSerial();
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                serial = android.os.Build.getSerial();
+            } else {
+                serial = Build.SERIAL;
+            }
+            Log.w("zjy", "UploadUtils->getDeviceID(): getSerial==" + serial);
+
+            if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+                //android 10兼容id
+                String m_szDevIDShort = "35" +
+                        Build.BOARD.length() % 10 + Build.BRAND.length() % 10 +
+                        Build.CPU_ABI.length() % 10 + Build.DEVICE.length() % 10 +
+
+                        Build.DISPLAY.length() % 10 + Build.HOST.length() % 10 +
+
+                        Build.ID.length() % 10 + Build.MANUFACTURER.length() % 10 +
+
+                        Build.MODEL.length() % 10 + Build.PRODUCT.length() % 10 +
+
+                        Build.TAGS.length() % 10 + Build.TYPE.length() % 10 +
+
+                        Build.USER.length() % 10; //13 位
+                if (serial == null || Build.UNKNOWN.equalsIgnoreCase(serial)) {
+                    //                    serial=m_szDevIDShort;
+                }
+                devId = new UUID(m_szDevIDShort.hashCode(), serial.hashCode()).toString();
+                Log.w("zjy", "UploadUtils->getDeviceID(): api>27,id=" + devId);
+                //            getGLESTextureLimitEqualAboveLollipop();
+            }
+            if (devId == null) {
+                devId = getCommDevID();
+                throw new IOException("错误信息");
+            }
+        } catch (NullPointerException e) {
+            devId = "bug_" + System.currentTimeMillis();
+            MyApp.myLogger.writeBug("no deviceID null," + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            MyApp.myLogger.writeBug("no deviceID," + e.getMessage());
+        }
+        return devId;
     }
+
+
+   /* String serial;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        serial = android.os.Build.getSerial();
+    } else {
+        serial = Build.SERIAL;
+    }
+        if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+        MyApp.myLogger.writeInfo("android-10 inUse");
+        //android 10兼容id
+        String m_szDevIDShort = "35" +
+                Build.BOARD.length() % 10 + Build.BRAND.length() % 10 +
+                Build.CPU_ABI.length() % 10 + Build.DEVICE.length() % 10 +
+
+                Build.DISPLAY.length() % 10 + Build.HOST.length() % 10 +
+
+                Build.ID.length() % 10 + Build.MANUFACTURER.length() % 10 +
+
+                Build.MODEL.length() % 10 + Build.PRODUCT.length() % 10 +
+
+                Build.TAGS.length() % 10 + Build.TYPE.length() % 10 +
+
+                Build.USER.length() % 10; //13 位
+        deviceid = "";
+
+        return new UUID(m_szDevIDShort.hashCode(), serial.hashCode()).toString();
+    }*/
+    @SuppressLint("MissingPermission")
+    public static String getCommDevID() {
+        String serial = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            serial = android.os.Build.getSerial();
+        } else  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            serial = android.os.Build.getSerial();
+            Log.w("zjy", "UploadUtils->getDeviceID(): getSerial==" + serial );
+        } else {
+            serial = Build.SERIAL;
+        }
+        Log.i("zjy", "UploadUtils->getDeviceID():serial ==" + serial);
+        String m_szDevIDShort = "35" +
+                Build.BOARD.length() % 10 + Build.BRAND.length() % 10 +
+                Build.CPU_ABI.length() % 10 + Build.DEVICE.length() % 10 +
+
+                Build.DISPLAY.length() % 10 + Build.HOST.length() % 10 +
+
+                Build.ID.length() % 10 + Build.MANUFACTURER.length() % 10 +
+
+                Build.MODEL.length() % 10 + Build.PRODUCT.length() % 10 +
+
+                Build.TAGS.length() % 10 + Build.TYPE.length() % 10 +
+
+                Build.USER.length() % 10; //13 位
+        if(serial==null||Build.UNKNOWN.equalsIgnoreCase(serial)){
+//            serial=m_szDevIDShort;
+        }
+        String devId = new UUID(m_szDevIDShort.hashCode(), serial.hashCode()).toString();
+        Log.w("zjy", "UploadUtils->getDeviceID():commonDev id api>27,id=" + devId);
+        return devId;
+    }
+    @SuppressLint("MissingPermission")
     public static String getPhoneCode(Context context) {
-        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        String imei = tm.getSimSerialNumber();
-        String deviceId = tm.getDeviceId();
+        String deviceId = getDeviceID(context);
         String phoneModel = Build.MODEL;
         String phoneName = Build.BRAND;
         StringBuilder phoneId = new StringBuilder();

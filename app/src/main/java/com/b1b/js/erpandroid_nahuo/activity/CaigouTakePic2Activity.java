@@ -20,8 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.NotificationCompat;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -37,6 +36,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_nahuo.R;
+import com.b1b.js.erpandroid_nahuo.activity.base.BaseMActivity;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -54,17 +54,17 @@ import java.util.List;
 import me.drakeet.materialdialog.MaterialDialog;
 import utils.CheckUtils;
 import utils.DialogUtils;
+import utils.MyFileUtils;
+import utils.MyToast;
+import utils.camera.AutoFoucusMgr;
+import utils.image.ImageWaterUtils;
+import utils.image.MyImageUtls;
 import utils.net.ftp.FTPUtils;
 import utils.net.ftp.FtpManager;
-import utils.image.ImageWaterUtils;
-import utils.MyFileUtils;
-import utils.image.MyImageUtls;
-import utils.MyToast;
 import utils.net.ftp.UploadUtils;
 import utils.wsdelegate.WebserviceUtils;
-import utils.camera.AutoFoucusMgr;
 
-public class CaigouTakePic2Activity extends AppCompatActivity implements View.OnClickListener {
+public class CaigouTakePic2Activity extends BaseMActivity implements View.OnClickListener {
 
     private int rotation = 0;
     private SurfaceView surfaceView;
@@ -268,6 +268,16 @@ public class CaigouTakePic2Activity extends AppCompatActivity implements View.On
                 }
             });
         }
+    }
+
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setListeners() {
+
     }
 
     /**

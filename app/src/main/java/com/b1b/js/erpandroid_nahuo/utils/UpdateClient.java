@@ -330,7 +330,7 @@ public class UpdateClient {
         return null;
     }
 
-    public boolean checkVersionAvailable() {
+    public boolean checkVersionAvailable() throws IOException {
         PackageManager pm = mContext.getPackageManager();
         try {
             PackageInfo info = pm.getPackageInfo(mContext.getPackageName(), PackageManager.GET_ACTIVITIES);
@@ -359,6 +359,7 @@ public class UpdateClient {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+            throw new IOException("连接更新服务器异常");
         } catch (JSONException e) {
             e.printStackTrace();
         }

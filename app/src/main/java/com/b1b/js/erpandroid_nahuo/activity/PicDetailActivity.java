@@ -12,7 +12,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
@@ -22,6 +21,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_nahuo.R;
+import com.b1b.js.erpandroid_nahuo.activity.base.BaseMActivity;
 import com.b1b.js.erpandroid_nahuo.myview.ZoomImageView;
 import com.b1b.js.erpandroid_nahuo.utils.TaskManager;
 
@@ -32,7 +32,7 @@ import java.util.List;
 import utils.image.MyImageUtls;
 import utils.net.HttpUtils;
 
-public class PicDetailActivity extends AppCompatActivity {
+public class PicDetailActivity extends BaseMActivity {
 
     private ZoomImageView zoomIv;
     private ViewPager mViewPager;
@@ -82,6 +82,16 @@ public class PicDetailActivity extends AppCompatActivity {
         });
         tv.setText(("1/" + paths.size()));
         mViewPager.setCurrentItem(pos);
+    }
+
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setListeners() {
+
     }
 
     @Override

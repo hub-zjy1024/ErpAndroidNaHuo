@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -31,6 +32,10 @@ import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.wsdelegate.MartService;
 
+/**
+ * 等待验货列表
+ *  * {@link MenuActivity#itemYanhuo}
+ */
 public class CaigouYanhuoActivity extends BaseScanActivity {
 
     private Handler mHandler = new Handler();
@@ -47,6 +52,11 @@ public class CaigouYanhuoActivity extends BaseScanActivity {
         super.onCreate(savedInstanceState);
         SoftKeyboardUtils.hideKeyBoard(this);
         setContentView(R.layout.activity_caigou_yanhuo);
+        String mTitle = getResString(R.string.title_ddyanhuo);
+        Toolbar tb = (Toolbar) findViewById(R.id.yanhuoTitle);
+        tb.setTitle(mTitle);
+        tb.setSubtitle("");
+        setSupportActionBar(tb);
         edpid = (EditText) findViewById(R.id.activity_caigou_yanhuo_edpid);
         edpid.requestFocus();
         edpartno = (EditText) findViewById(R.id
@@ -109,6 +119,21 @@ public class CaigouYanhuoActivity extends BaseScanActivity {
     }
 
     @Override
+    public String getToobarTittle() {
+        return getResString(R.string.title_ddyanhuo);
+    }
+
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setListeners() {
+
+    }
+
+    @Override
     public void resultBack(String result) {
         edpid.setText(result);
         String pid =result;
@@ -128,7 +153,7 @@ public class CaigouYanhuoActivity extends BaseScanActivity {
             public void run() {
                 try {
                     String result = getResponse(partno, pid);
-                    Log.e("zjy", "CaigouYanhuoActivity->run(): CaigouYanhuoInfo==" + result);
+//                    Log.e("zjy", "CaigouYanhuoActivity->run(): CaigouYanhuoInfo==" + result);
                     JSONObject object = new JSONObject(result);
                     JSONArray jArray = object.getJSONArray("表");
                     for(int i=0;i<jArray.length();i++) {

@@ -1,12 +1,12 @@
-package com.b1b.js.erpandroid_nahuo.activity;
+package com.b1b.js.erpandroid_nahuo.activity.base;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+
 import com.b1b.js.erpandroid_nahuo.R;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
 
-public class SavedLoginInfoActivity extends AppCompatActivity {
+public class SavedLoginInfoActivity extends BaseMActivity {
     protected String loginID = MyApp.id;
 
     @Override
@@ -26,6 +26,16 @@ public class SavedLoginInfoActivity extends AppCompatActivity {
             MyApp.id = loginID;
             MyApp.ftpUrl = savedInstanceState.getString("ftpUrl");
         }
-        Log.e("zjy", "SavedLoginInfoActivity->onCreate(): nowID==" + loginID);
+        Log.d("zjy", "SavedLoginInfoActivity->onCreate(): nowID==" + loginID);
+    }
+
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setListeners() {
+
     }
 }

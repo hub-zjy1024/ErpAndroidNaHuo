@@ -22,7 +22,7 @@ public class WebserviceUtils {
 
 
     public static final String NAMESPACE = "http://tempuri.org/";
-    public static final String ROOT_URL = "http://210.51.190.36:7500/";
+    public static final String ROOT_URL = "http://vpn3.t996.top:7500/";
     //服务名，带后缀名的
     public static final String MartService = "MartService.svc";
     public static final String MartStock = "MartStock.svc";
@@ -36,6 +36,7 @@ public class WebserviceUtils {
     private static final int VERSION_10 = SoapEnvelope.VER10;
     private static final int VERSION_11 = SoapEnvelope.VER11;
     private static final int VERSION_12 = SoapEnvelope.VER12;
+    static int MAX_LOG_LENGTH = 1000;
     /**
      * 扫描二维码的返回请求码
      */
@@ -75,7 +76,7 @@ public class WebserviceUtils {
      * @return
      */
     private static String getSoapAcction(String serviceName, String methodName) {
-        Log.e("zjy", "WebserviceUtils1.java->getSoapAcction(): ==" + NAMESPACE + "I" + serviceName
+        Log.d("zjy", "WebserviceUtils1.java->getSoapAcction(): ==" + NAMESPACE + "I" + serviceName
                 .substring(0, serviceName
                         .indexOf(".")) + "/" + methodName);
         return NAMESPACE + "I" + serviceName.substring(0, serviceName.indexOf(".")) + "/" + methodName;
@@ -140,7 +141,15 @@ public class WebserviceUtils {
         } else {
             MyApp.myLogger.writeBug("Soap response is Unknow,"+request.toString());
         }
-        return sob.toString();
+        String result = sob.toString();
+        String logMsg = result;
+
+        if(result.length()> MAX_LOG_LENGTH){
+            logMsg = result.substring(0, MAX_LOG_LENGTH);
+        }
+        Log.d("zjy", "WebserviceUtils->getWcfResult(): ==" +logMsg);
+
+        return result;
     }
 
     public static String getWcfResult(LinkedHashMap<String, Object> properties, String method,

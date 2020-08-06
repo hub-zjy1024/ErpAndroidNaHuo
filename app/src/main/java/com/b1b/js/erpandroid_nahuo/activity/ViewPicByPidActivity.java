@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -16,6 +15,7 @@ import android.widget.EditText;
 import android.widget.GridView;
 
 import com.b1b.js.erpandroid_nahuo.R;
+import com.b1b.js.erpandroid_nahuo.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_nahuo.adapter.ViewPicAdapter;
 import com.b1b.js.erpandroid_nahuo.entity.FTPImgInfo;
 
@@ -32,14 +32,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import utils.DialogUtils;
-import utils.net.ftp.FTPUtils;
-import utils.net.ftp.FtpManager;
 import utils.MyFileUtils;
 import utils.MyToast;
 import utils.SoftKeyboardUtils;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
 import utils.wsdelegate.MartService;
 
-public class ViewPicByPidActivity extends AppCompatActivity {
+public class ViewPicByPidActivity extends SavedLoginInfoActivity {
 
     private EditText edPid;
     private GridView gv;
@@ -189,7 +189,7 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                 downCounts = 0;
                 String result = "";
                 try {
-//                    result = getRelativePicInfoByPid("", pid);
+                    //                    result = getRelativePicInfoByPid("", pid);
                     result = getYHPIC("SCCG_" + pid);
                 } catch (IOException e) {
                     mHandler.sendEmptyMessage(2);
@@ -205,13 +205,13 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                     FTPClient client = new FTPClient();
                     List<FTPImgInfo> list = new ArrayList<>();
                     int searchSize = array.length();
-                    FTPUtils mFtpClient=null;
+                    FTPUtils mFtpClient = null;
                     String tempUrl = "";
                     downloadResult = "";
                     for (int i = 0; i < searchSize; i++) {
                         JSONObject tObj = array.getJSONObject(i);
-//                        String imgName = tObj.getString("pictureName");
-//                        String imgUrl = tObj.getString("pictureURL");
+                        //                        String imgName = tObj.getString("pictureName");
+                        //                        String imgUrl = tObj.getString("pictureURL");
                         String imgName = tObj.getString("PictureName");
                         String imgUrl = tObj.getString("PictureURL");
                         String urlNoShema = imgUrl.substring(6);
@@ -238,13 +238,13 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                             if (!file.exists()) {
                                 if (!tempUrl.equals(imgFtp)) {
                                     if (finalHost.equals(FtpManager.DB_ADDRESS)) {
-                                        mFtpClient =  FTPUtils.getGlobalFTP();
+                                        mFtpClient = FTPUtils.getGlobalFTP();
                                     } else {
                                         mFtpClient = FTPUtils.getLocalFTP(finalHost);
                                     }
-                                }else {
+                                } else {
                                     if (finalHost.equals(FtpManager.DB_ADDRESS)) {
-                                        mFtpClient =  FTPUtils.getGlobalFTP();
+                                        mFtpClient = FTPUtils.getGlobalFTP();
                                     } else {
                                         mFtpClient = FTPUtils.getLocalFTP(finalHost);
                                     }
@@ -276,7 +276,7 @@ public class ViewPicByPidActivity extends AppCompatActivity {
                             e.printStackTrace();
                         } catch (IOException e) {
                             e.printStackTrace();
-                            downloadResult += "第" + (i+1)+ "张,下载失败，原因：网络连接错误\r\n";
+                            downloadResult += "第" + (i + 1) + "张,下载失败，原因：网络连接错误\r\n";
                         }
                     }
                     imgsData.addAll(list);

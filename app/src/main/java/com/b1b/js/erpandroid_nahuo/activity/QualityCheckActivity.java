@@ -29,6 +29,10 @@ import utils.SoftKeyboardUtils;
 import utils.net.ftp.UploadUtils;
 import utils.wsdelegate.MartService;
 
+/**
+ * {@link MenuActivity#tag_QualityCheck}
+ *
+ */
 public class QualityCheckActivity extends BaseScanActivity {
 
     private EditText edPid;
@@ -109,6 +113,21 @@ public class QualityCheckActivity extends BaseScanActivity {
         pd.setTitle("提示");
         pd.setMessage("正在查询");
         resultDialog = DialogUtils.createAlertDialog(this, "");
+
+    }
+
+    @Override
+    public String getToobarTittle() {
+        return getResString(R.string.title_quality_check);
+    }
+
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setListeners() {
 
     }
 

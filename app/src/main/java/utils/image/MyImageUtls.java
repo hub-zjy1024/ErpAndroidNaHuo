@@ -216,7 +216,7 @@ public class MyImageUtls {
                 i -= 10;
                 bitmap.compress(Bitmap.CompressFormat.JPEG, i, bao);
             }
-            Log.e("zjy", "MyImageUtls.java->compressBitmapAtsize(): rate==" + i);
+            Log.i("zjy", "MyImageUtls.java->compressBitmapAtsize(): rate==" + i);
             out.write(bao.toByteArray());
             res = true;
         }

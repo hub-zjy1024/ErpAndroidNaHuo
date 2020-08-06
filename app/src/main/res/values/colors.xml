@@ -30,4 +30,5 @@
     <color name="color_tb_subtitle">#2d2574</color>
     <color name="color_alert_red">#ea6969</color>
     <color name="color_nomarl_bg_gray">#cecece</color>
+    <color name="dialog_divider">#4D969696</color>
 </resources>

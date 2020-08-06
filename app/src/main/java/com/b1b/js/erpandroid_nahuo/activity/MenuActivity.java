@@ -14,6 +14,7 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_nahuo.R;
+import com.b1b.js.erpandroid_nahuo.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
 import com.b1b.js.erpandroid_nahuo.services.LogUploadService2;
 import com.b1b.js.erpandroid_nahuo.services.NahuoPushService;
@@ -27,8 +28,8 @@ import utils.RoomSizeUtils;
 
 public class MenuActivity extends SavedLoginInfoActivity {
 
-    private final String itemYanhuo = "等待验货";
-    private final String tag_QualityCheck = "质检中心";
+    public static final String itemYanhuo = "等待验货";
+    public static final String tag_QualityCheck = "质检中心";
     private final String tag_Baoguan = "采购单报关";
 
 
@@ -87,22 +88,22 @@ public class MenuActivity extends SavedLoginInfoActivity {
                 Intent intent = new Intent();
                 switch (value) {
                     case "拿货":
-                        intent.setClass(MenuActivity.this, NahuoListAcitivity.class);
+                        intent.setClass(mContext, NahuoListAcitivity.class);
                         startActivity(intent);
                         MyApp.myLogger.writeInfo("<page> nahuo");
                         break;
                     case itemYanhuo:
-                        intent.setClass(MenuActivity.this, CaigouYanhuoActivity.class);
+                        intent.setClass(mContext, CaigouYanhuoActivity.class);
                         startActivity(intent);
                         MyApp.myLogger.writeInfo("<page> yanhuo");
                         break;
                     case tag_QualityCheck:
-                        intent.setClass(MenuActivity.this, QualityCheckActivity.class);
+                        intent.setClass(mContext, QualityCheckActivity.class);
                         startActivity(intent);
                         MyApp.myLogger.writeInfo("<page> QualityCheck");
                         break;
                     case tag_Baoguan:
-                        intent.setClass(MenuActivity.this, CaigouBaoguanActivity.class);
+                        intent.setClass(mContext, CaigouBaoguanActivity.class);
                         startActivity(intent);
                         MyApp.myLogger.writeInfo("<page> baoguan");
                         break;

@@ -17,7 +17,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -34,6 +33,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_nahuo.R;
+import com.b1b.js.erpandroid_nahuo.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
 import com.b1b.js.erpandroid_nahuo.handler.NoLeakHandler;
 import com.b1b.js.erpandroid_nahuo.utils.ReuseFtpRunnable;
@@ -52,16 +52,16 @@ import java.util.List;
 
 import me.drakeet.materialdialog.MaterialDialog;
 import utils.CheckUtils;
-import utils.net.ftp.FTPUtils;
-import utils.net.ftp.FtpManager;
+import utils.MyToast;
+import utils.camera.AutoFoucusMgr;
 import utils.image.ImageWaterUtils;
 import utils.image.MyImageUtls;
-import utils.MyToast;
+import utils.net.ftp.FTPUtils;
+import utils.net.ftp.FtpManager;
 import utils.net.ftp.UploadUtils;
 import utils.wsdelegate.WebserviceUtils;
-import utils.camera.AutoFoucusMgr;
 
-public class TakePicActivityNew extends AppCompatActivity implements View.OnClickListener, NoLeakHandler.NoLeakCallback {
+public class TakePicActivityNew extends SavedLoginInfoActivity implements View.OnClickListener, NoLeakHandler.NoLeakCallback {
 
     private int rotation = 0;
     private SurfaceView surfaceView;
@@ -91,14 +91,6 @@ public class TakePicActivityNew extends AppCompatActivity implements View.OnClic
 
     private String loginID= MyApp.id;
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (outState != null) {
-            outState.putString("uid", loginID);
-            outState.putString("ftpUrl", MyApp.ftpUrl);
-        }
-    }
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {

@@ -8,7 +8,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PersistableBundle;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -23,6 +22,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_nahuo.R;
+import com.b1b.js.erpandroid_nahuo.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_nahuo.adapter.BaoguanAutoAdapter;
 import com.b1b.js.erpandroid_nahuo.adapter.CaigouBaoguanAdapter;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
@@ -49,7 +49,7 @@ import utils.MyToast;
 import utils.SoftKeyboardUtils;
 import utils.wsdelegate.MartService;
 
-public class CaigouBaoguanActivity extends AppCompatActivity implements NoLeakHandler.NoLeakCallback {
+public class CaigouBaoguanActivity extends SavedLoginInfoActivity implements NoLeakHandler.NoLeakCallback {
 
     private List<CaigouBaoguanInfo> bgComp;
     private List<CaigouBaoguanInfo> providers;

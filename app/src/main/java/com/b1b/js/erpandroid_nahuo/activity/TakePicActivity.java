@@ -33,6 +33,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.b1b.js.erpandroid_nahuo.R;
+import com.b1b.js.erpandroid_nahuo.activity.base.SavedLoginInfoActivity;
 import com.b1b.js.erpandroid_nahuo.application.MyApp;
 import com.b1b.js.erpandroid_nahuo.handler.NoLeakHandler;
 import com.b1b.js.erpandroid_nahuo.utils.ReuseFtpRunnable;
@@ -86,7 +87,7 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
     protected int tempRotate = 0;
     protected Snackbar finalSnackbar;
     private boolean isDestoryed = false;
-    private Handler picHandler = new NoLeakHandler(this);
+    protected Handler picHandler = new NoLeakHandler(this);
     protected Class mCla = getClass();
     @Override
     public void handleMessage(Message msg) {
@@ -251,11 +252,11 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
                         int sh = metrics.heightPixels;
                         MyApp.myLogger.writeInfo(mCla, "screenSize w-h:" + sw + "\t" + sh);
                         MyApp.myLogger.writeInfo(mCla, "defPreviewSize w-h:" + width1 + "\t" + height1);
-                        Log.e("zjy", "TakePicActivity->surfaceCreated(): mCamera.preview==" + width1 + "\t" + height1);
-                        Log.e("zjy", "TakePicActivity->surfaceCreated(): Screen==" + sw + "\t" + sh + "xx" + density);
+                        Log.d("zjy", "TakePicActivity->surfaceCreated(): mCamera.preview==" + width1 + "\t" + height1);
+                        Log.d("zjy", "TakePicActivity->surfaceCreated(): Screen==" + sw + "\t" + sh + "xx" + density);
                         Point finalSize = getSuitablePreviewSize(parameters, sw, sh);
                         if (finalSize != null) {
-                            Log.e("zjy", "TakePicActivity->surfaceCreated():final.preview==" + finalSize.x + "\t" + finalSize.y);
+                            Log.d("zjy", "TakePicActivity->surfaceCreated():final.preview==" + finalSize.x + "\t" + finalSize.y);
                             MyApp.myLogger.writeInfo(mCla, "setPreviewSize w-h:" + finalSize.x + "\t" + finalSize.y);
                             parameters.setPreviewSize(finalSize.x, finalSize.y);
                         }
@@ -264,7 +265,7 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
                             int width = cameraSp.getInt("width", -1);
                             int height = cameraSp.getInt("height", -1);
                             MyApp.myLogger.writeInfo(mCla, "setPicSize w-h:" + width + "\t" + height);
-                            Log.e("zjy", "TakePicActivity.java->surfaceCreated(): ==readCacheSize width" + width + "\t" + height);
+                            Log.d("zjy", "TakePicActivity.java->surfaceCreated(): ==readCacheSize width" + width + "\t" + height);
                             parameters.setPictureSize(width, height);
                             try {
                                 mCamera.setParameters(parameters);
@@ -306,6 +307,7 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
                 }
             });
         }
+        Log.i("zjy", "TakePicActivity->onCreate(): initClass==" + getClass());
     }
 
     private void initSnackbar() {
@@ -317,16 +319,26 @@ public class TakePicActivity extends SavedLoginInfoActivity implements View.OnCl
         float fontSize = 6 * density;
         //        int height = (int) (80 * density);
         int height = (int) (sHeight * 1/ 8);
-        parent.setMinimumHeight(height);
+//        parent.setMinimumHeight(height);
+        int left=getResDimen(R.dimen.takepic_snackbar_padding_horizontal);
+        int top = getResDimen(R.dimen.takepic_snackbar_padding_vetical);
+        parent.setPadding(left, top, left, top);
         int colorBg = getResources().getColor(R.color.button_light_bg);
         parent.setBackgroundColor(colorBg);
         fontSize = 18;
-        TextView tv = (TextView) parent.getChildAt(0);
-        tv.setTextColor(Color.GREEN);
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
-        Button btn = (Button) parent.getChildAt(1);
-        btn.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
-        btn.setTextColor(Color.WHITE);
+        View childAt0 = parent.getChildAt(0);
+        if(childAt0!=null){
+            TextView tv = childAt0.findViewById(R.id.snackbar_text);
+            Button btn = childAt0.findViewById(R.id.snackbar_action);
+            if(tv!=null){
+                tv.setTextColor(Color.GREEN);
+                tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
+            }
+            if(btn!=null){
+                btn.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
+                btn.setTextColor(Color.WHITE);
+            }
+        }
         finalSnackbar.setActionTextColor(Color.parseColor("#ffffff"));
         finalSnackbar.setAction("返回", new View.OnClickListener() {
             @Override

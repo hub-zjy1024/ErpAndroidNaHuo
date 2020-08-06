@@ -25,7 +25,14 @@
     <style name="yanhuo_btn_right" parent="yanhuo_btn_base">
         <item name="android:layout_marginLeft">40dp</item>
     </style>
-
+    <style name="dialog_button" parent="button.transparent">
+        <!--    <item name="android:borderlessButtonStyle">?android:borderlessButtonStyle</item>-->
+        <item name="android:textColor">?android:attr/colorAccent</item>
+    </style>
+    <style name="button.transparent" parent="AppTheme">
+        <!--    <item name="android:borderlessButtonStyle">?android:borderlessButtonStyle</item>-->
+        <item name="android:background">@android:color/transparent</item>
+    </style>
 
     <style name="myButton">
         <item name="android:background">@drawable/btn_click</item>

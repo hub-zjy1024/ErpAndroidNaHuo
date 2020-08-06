@@ -8,6 +8,7 @@
     <dimen name="def_text_size_smalll">16sp</dimen>
     <dimen name="def_text_size_nomarl">18sp</dimen>
     <dimen name="def_text_size_large">25sp</dimen>
+    <dimen name="def_text_size">18sp</dimen>
     <dimen name="zjy_text_size_1">16sp</dimen>
     <dimen name="zjy_text_size_2">18sp</dimen>
     <dimen name="zjy_text_size_3">20sp</dimen>
@@ -19,4 +20,8 @@
     <dimen name="titlewith_price">50dp</dimen>
     <dimen name="item_baoguan_dur_margin">15dp</dimen>
     <dimen name="item_baoguan_dur_margin_index">20dp</dimen>
+    <dimen name="takepic_snackbar_padding_horizontal">10dp</dimen>
+    <dimen name="takepic_snackbar_padding_vetical">8dp</dimen>
+    <dimen name="menu_img_margin">10dp</dimen>
+
 </resources>
